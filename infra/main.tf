@@ -22,3 +22,15 @@ module "eks" {
     "subnet-placeholder-c"
   ]
 }
+
+module "ecr" {
+  source = "./modules/ecr"
+  # ... 생략
+}
+
+module "iam" {
+  source = "./modules/iam"
+
+  ecr_repository_url = module.ecr.repository_url
+  #..
+}
