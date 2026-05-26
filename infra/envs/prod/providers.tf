@@ -1,12 +1,27 @@
+#prod/providers.tf
+
+terraform {
+  required_version = ">= 1.6.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+  }
+}
+
 provider "aws" {
   region = "ap-northeast-2"
 
-  # 공통 태그 설정
-  # 리소스 식별 및 비용 추적 용도
   default_tags {
     tags = {
       Team        = "team3"
-      Environment = "dev"
+      Environment = "prod"
       ManagedBy   = "terraform"
     }
   }

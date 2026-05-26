@@ -1,3 +1,5 @@
+#eks/node_group.tf✅
+
 # EKS Worker Node Group 생성
 resource "aws_eks_node_group" "this" {
 

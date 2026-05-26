@@ -1,3 +1,5 @@
+#iam.outputs.tf✅
+
 # GitHub Actions 관련 아웃풋
 
 output "github_actions_role_arn" {

@@ -1,5 +1,9 @@
-# VPC 생성
+#vpc/main.tf
+
 resource "aws_vpc" "main" {
+  ### CIDR, 태그 등이 하드코딩되어 있습니다.
+  ### rds/main.tf, iam/main.tf와 동일하게 var.env를 추가해
+  ### 태그를 "${var.env}-foldy-vpc"로 변경하면 prod 분리 시 재사용할 수 있습니다.
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -9,7 +13,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 인터넷 게이트웨이 (퍼블릭 통신용)
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -18,7 +21,6 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# 퍼블릭 서브넷 (2개 - 2c는 구조적 요구사항 대응용)
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -27,7 +29,7 @@ resource "aws_subnet" "public_a" {
 
   tags = {
     Name                     = "dev-subnet-public-a"
-    "kubernetes.io/role/elb" = "1" # EKS Public ALB 자동 감지 태그
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
@@ -43,7 +45,6 @@ resource "aws_subnet" "public_c" {
   }
 }
 
-# 프라이빗 서브넷 (2개 - EKS Node 및 ASG 배포용)
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.11.0/24"
@@ -51,7 +52,12 @@ resource "aws_subnet" "private_a" {
 
   tags = {
     Name                              = "dev-subnet-private-a"
-    "kubernetes.io/role/internal-elb" = "1" # EKS Internal ALB 자동 감지 태그
+    "kubernetes.io/role/internal-elb" = "1"
+    ### EKS 노드가 배포되는 서브넷에는 클러스터 이름 태그도 추가해야
+    ### AWS Load Balancer Controller가 서브넷을 자동으로 인식합니다.
+    ### "kubernetes.io/cluster/${var.cluster_name}" = "shared" 를 추가하세요.
+    ### var.cluster_name 변수를 vpc 모듈에 추가하거나
+    ### 태그를 eks 모듈에서 aws_ec2_tag 리소스로 붙이는 방법 중 하나를 선택하세요.
   }
 }
 
@@ -63,10 +69,10 @@ resource "aws_subnet" "private_c" {
   tags = {
     Name                              = "dev-subnet-private-c"
     "kubernetes.io/role/internal-elb" = "1"
+    ### private_a와 동일하게 클러스터 이름 태그를 추가하세요.
   }
 }
 
-# DB 서브넷 (2개 - RDS Subnet Group 생성 제약조건 해결용)
 resource "aws_subnet" "db_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.21.0/24"
@@ -87,7 +93,6 @@ resource "aws_subnet" "db_c" {
   }
 }
 
-#  NAT 게이트웨이 및 EIP (비용 절감을 위해 1개만 생성)
 resource "aws_eip" "nat" {
   domain = "vpc"
   tags   = { Name = "dev-nat-eip" }
@@ -95,7 +100,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public_a.id # 2a 퍼블릭 서브넷에 배치
+  subnet_id     = aws_subnet.public_a.id
 
   tags = {
     Name = "dev-nat-gw"
@@ -103,7 +108,6 @@ resource "aws_nat_gateway" "nat_gw" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-# 7. 라우트 테이블 (퍼블릭 / 프라이빗 총 2개)
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -120,13 +124,16 @@ resource "aws_route_table" "private" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gw.id # 2a, 2c 프라이빗 서브넷 모두 이 NAT를 바라봄
+    nat_gateway_id = aws_nat_gateway.nat_gw.id
   }
 
   tags = { Name = "dev-rt-private" }
 }
 
-# 라우트 테이블 연결 (총 4개 서브넷 맵핑)
+### DB 서브넷용 라우트 테이블이 없습니다.
+### db_a, db_c 서브넷이 현재 어떤 라우트 테이블에도 연결되어 있지 않아
+### VPC 기본 라우트 테이블을 타게 됩니다.
+### aws_route_table_association으로 private 라우트 테이블에 명시적으로 연결하세요.
 resource "aws_route_table_association" "public_a" {
   subnet_id      = aws_subnet.public_a.id
   route_table_id = aws_route_table.public.id
@@ -147,8 +154,6 @@ resource "aws_route_table_association" "private_c" {
   route_table_id = aws_route_table.private.id
 }
 
-# RDS 서브넷 그룹 생성
-# 2a와 2c의 DB 서브넷을 하나로 묶어 그룹을 생성, 이렇게 해야 RDS 싱글 인스턴스가 에러 없이 생성됨
 resource "aws_db_subnet_group" "rds_group" {
   name       = "dev-foldy-rds-subnet-group"
   subnet_ids = [aws_subnet.db_a.id, aws_subnet.db_c.id]
@@ -157,6 +162,3 @@ resource "aws_db_subnet_group" "rds_group" {
     Name = "dev-foldy-rds-subnet-group"
   }
 }
-
-#AWS EKS 클러스터와 RDS 서브넷 그룹은 고가용성 규칙 때문에 최소 2개 이상의 가용구역이 필요
-#비용 절약을 위해 1개의 NAT 게이트웨이만 배치

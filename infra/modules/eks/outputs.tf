@@ -1,23 +1,32 @@
+#eks/outputs.tf
+
 output "cluster_name" {
+  ### description이 없습니다. 다른 output들과 일관성을 위해 추가하세요.
   value = aws_eks_cluster.this.name
 }
 
 output "cluster_endpoint" {
+  ### description이 없습니다. 추가하세요.
   value = aws_eks_cluster.this.endpoint
 }
 
 output "cluster_certificate_authority_data" {
+  ### description이 없습니다. 추가하세요.
   value = aws_eks_cluster.this.certificate_authority[0].data
 }
 
 output "cluster_oidc_issuer_url" {
+  ### description이 없습니다. 추가하세요.
   value = aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
+
 output "node_group_name" {
+  ### description이 없습니다. 추가하세요.
   value = aws_eks_node_group.this.node_group_name
 }
 
 output "node_role_arn" {
+  ### description이 없습니다. 추가하세요.
   value = aws_iam_role.eks_node.arn
 }
 

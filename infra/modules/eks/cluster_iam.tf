@@ -1,3 +1,5 @@
+#eks/cluster_iam.tf✅
+
 # EKS Control Plane용 IAM Role
 resource "aws_iam_role" "eks_cluster" {
   name = "${var.cluster_name}-cluster-role"
