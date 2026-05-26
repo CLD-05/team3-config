@@ -43,7 +43,11 @@ resource "aws_iam_role" "github_actions_ecr_role" {
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
+# 현재 로그인된 AWS 계정 ID를 실시간으로 캐치하는 안테나
+data "aws_caller_identity" "current" {}
+
 # ECR Push 실제 권한 지침서 (Policy)
+# ECR Push 실제 권한 지침서 (Policy) - 모듈 동적 연동 및 팀 피드백 완벽 반영본!
 resource "aws_iam_policy" "ecr_push_policy" {
   name        = "dev-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
@@ -52,9 +56,19 @@ resource "aws_iam_policy" "ecr_push_policy" {
     Version = "2012-10-17"
     Statement = [
       {
+        #  [Statement 1] AWS ECR 전체 서비스에 대한 로그인(인증) 권한
+        Sid    = "ECRAuthAPI"
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
+          "ecr:GetAuthorizationToken"
+        ]
+        Resource = "*" # 로그인 API는 리소스 제한이 안 되므로 "*" 고정 (피드백 반영)
+      },
+      {
+        #  [Statement 2] ECR 리포지토리에 대한 정밀 제어 권한
+        Sid    = "ECRRepositoryActions"
+        Effect = "Allow"
+        Action = [
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:GetRepositoryPolicy",
@@ -67,7 +81,11 @@ resource "aws_iam_policy" "ecr_push_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
         ]
-        Resource = "*" # 실제 ECR 리포지토리의 ARN을 적어야 안전
+
+        # 하드코딩 대신, 넘겨받은 URL 주소에서 레포지토리 이름만 쏙 뽑아내어 ARN을 동적으로 완성합니다!
+        Resource = [
+          "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${split("/", var.ecr_repository_url)[1]}" #47 Line (data.aws_caller_identity.current.account_id)
+        ]
       }
     ]
   })

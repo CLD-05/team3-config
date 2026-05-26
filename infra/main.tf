@@ -12,3 +12,15 @@ module "rds" {
   db_password           = var.db_password
   eks_sg_id             = module.eks.node_security_group_id
 }
+
+module "ecr" {
+  source = "./modules/ecr"
+  # ... 생략
+}
+
+module "iam" {
+  source = "./modules/iam"
+
+  ecr_repository_url = module.ecr.repository_url
+  #..
+}
