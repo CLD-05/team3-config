@@ -1,8 +1,3 @@
-# 1. RDS 전용 보안 그룹 (EKS 노드에서만 3306 포트 접근 허용)
-resource "aws_security_group" "rds_sg" {
-  name        = "dev-foldy-rds-sg"
-  description = "Allow inbound traffic from EKS nodes only"
-  vpc_id      = var.vpc_id
 
   ingress {
     description     = "MySQL from EKS Nodes"
