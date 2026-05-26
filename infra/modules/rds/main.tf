@@ -34,7 +34,7 @@ resource "aws_db_instance" "mysql" {
   max_allocated_storage = 50 # 용량 부족 시 자동 스케일링 허용
 
   db_name  = "foldy"
-  username = "admin"
+  username = "foldy"
   password = var.db_password
 
   # VPC 모듈과 보안 그룹 연동
@@ -45,9 +45,11 @@ resource "aws_db_instance" "mysql" {
   availability_zone = "ap-northeast-2a" # 실제 인스턴스는 2a에만 생성
   multi_az          = false             # Multi-AZ 복제 비활성화
 
-  # 오타 수정 및 실습 편의성 옵션
-  publicly_accessible = false # [오타 수정 완료] 외부 인터넷 접속 차단
+  # 실습 편의성 옵션
+  publicly_accessible = false #  외부 인터넷 접속 차단
   skip_final_snapshot = true  # terraform destroy 시 최종 스냅샷 생성 안 함
+  # 실수로 인프라가 날아가는 것을 방지하는 안전장치
+  deletion_protection = false # 현재 DEV 환경이므로 false로 두어 삭제를 허용하지만, 추후 PROD(운영) 환경 전환 시 반드시 true로 변경
 
   tags = {
     Name = "dev-foldy-mysql"
