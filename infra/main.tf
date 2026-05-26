@@ -7,3 +7,18 @@ module "ecr" {
   # team-x/app-name
   repository_name = "test-app"
 }
+
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name    = "team3-dev-eks"
+  cluster_version = "1.30"
+  # TODO:
+  # VPC 모듈 연결 전 임시 subnet placeholder 사용
+  # 추후 module.vpc.private_subnet_ids 로 변경 예정
+  # private_subnet_ids = module.vpc.private_subnet_ids
+  private_subnet_ids = [
+    "subnet-placeholder-a",
+    "subnet-placeholder-c"
+  ]
+}
