@@ -14,6 +14,11 @@ module "eks" {
   cluster_version    = "1.30"
   private_subnet_ids = module.vpc.private_subnet_ids
 
+
+  node_desired_size = 1
+  node_min_size     = 0
+  node_max_size     = 2
+
   #admin_user_arns = var.admin_user_arns
   github_actions_role_arn = module.iam.github_actions_role_arn
 }
