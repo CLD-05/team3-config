@@ -19,15 +19,24 @@ resource "aws_ecr_lifecycle_policy" "this" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep only the last 10 images"
+        description  = "untagged 이미지 1일 후 자동 삭제"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 1
+        }
+        action = { type = "expire" }
+      },
+      {
+        rulePriority = 2
+        description  = "최근 10개 이미지만 유지"
         selection = {
           tagStatus   = "any"
           countType   = "imageCountMoreThan"
           countNumber = 10
         }
-        action = {
-          type = "expire"
-        }
+        action = { type = "expire" }
       }
     ]
   })
