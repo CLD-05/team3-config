@@ -30,3 +30,8 @@ output "oidc_provider_url" {
   description = "EKS OIDC Provider URL (https:// 제외)"
   value       = replace(aws_iam_openid_connect_provider.this.url, "https://", "")
 }
+
+output "node_security_group_id" {
+  description = "EKS 클러스터 보안 그룹 ID"
+  value       = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}

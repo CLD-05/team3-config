@@ -26,24 +26,31 @@ resource "aws_eks_access_policy_association" "admin_users" {
 # ───────────────────────────────────────
 # GitHub Actions Role → 클러스터 admin 권한 (CD용)
 # ───────────────────────────────────────
-resource "aws_eks_access_entry" "github_actions" {
-  count = var.github_actions_role_arn != "" ? 1 : 0
+# resource "aws_eks_access_entry" "github_actions" {
+#   count = var.github_actions_role_arn != "" ? 1 : 0
 
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = var.github_actions_role_arn
-  type          = "STANDARD"
-}
+#   cluster_name  = aws_eks_cluster.this.name
+#   principal_arn = var.github_actions_role_arn
+#   type          = "STANDARD"
 
-resource "aws_eks_access_policy_association" "github_actions" {
-  count = var.github_actions_role_arn != "" ? 1 : 0
+#   lifecycle {
+#     precondition {
+#       condition     = var.github_actions_role_arn != ""
+#       error_message = "github_actions_role_arn must not be empty"
+#     }
+#   }
+# }
 
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = var.github_actions_role_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+# resource "aws_eks_access_policy_association" "github_actions" {
+#   count = var.github_actions_role_arn != "" ? 1 : 0
 
-  access_scope {
-    type = "cluster"
-  }
+#   cluster_name  = aws_eks_cluster.this.name
+#   principal_arn = var.github_actions_role_arn
+#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
 
-  depends_on = [aws_eks_access_entry.github_actions]
-}
+#   access_scope {
+#     type = "cluster"
+#   }
+
+#   depends_on = [aws_eks_access_entry.github_actions]
+# }
