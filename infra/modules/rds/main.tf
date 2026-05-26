@@ -1,3 +1,7 @@
+resource "aws_security_group" "rds_sg" {
+  name        = "dev-foldy-rds-sg"
+  description = "Security Group for RDS MySQL"
+  vpc_id      = var.vpc_id
 
   ingress {
     description     = "MySQL from EKS Nodes"

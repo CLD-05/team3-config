@@ -1,8 +1,9 @@
-<<<<<<< HEAD
+
 variable "ecr_repository_url" {
   type        = string
   description = "ECR 모듈에서 넘겨받을 리포지토리 주소 URL"
-=======
+}
+
 variable "env" {
   type        = string
   description = "배포 환경 (예: dev, prod)"
@@ -29,5 +30,4 @@ variable "k8s_service_account_name" {
 variable "s3_bucket_name" {
   type        = string
   description = "App이 접근할 S3 버킷 이름"
->>>>>>> origin/feature/KEJ_20260526/iam1
 }

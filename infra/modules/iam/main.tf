@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # GitHub Actions OIDC Role & Policy (ECR push용)
 # =================================================================
 
@@ -8,6 +7,9 @@ resource "aws_iam_openid_connect_provider" "github" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
 }
+
+# 현재 로그인된 AWS 계정 ID를 실시간으로 캐치하는 안테나
+data "aws_caller_identity" "current" {}
 
 # 내 깃허브 레포의 main 브랜치만 허용하는 신뢰 관계(Trust Policy) 정의
 data "aws_iam_policy_document" "github_actions_assume_role" {
@@ -44,66 +46,22 @@ resource "aws_iam_role" "github_actions_ecr_role" {
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
-# 현재 로그인된 AWS 계정 ID를 실시간으로 캐치하는 안테나
-data "aws_caller_identity" "current" {}
-
 # ECR Push 실제 권한 지침서 (Policy)
 # ECR Push 실제 권한 지침서 (Policy) - 모듈 동적 연동 및 팀 피드백 완벽 반영본!
 resource "aws_iam_policy" "ecr_push_policy" {
   name        = "dev-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
-=======
-# OIDC ARN에서 URL만 빼내기 위한 로컬 변수 처리
-locals {
-  oidc_provider_url = replace(var.eks_oidc_provider_arn, "/^(.*)oidc-provider//", "")
-}
-
-# AWS IAM Role 생성 (Trust Policy 포함)
-resource "aws_iam_role" "app_irsa_role" {
-  name = "${var.env}-app-irsa-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Federated = var.eks_oidc_provider_arn
-      }
-      Action = "sts:AssumeRoleWithWebIdentity"
-      Condition = {
-        StringEquals = {
-          "${local.oidc_provider_url}:aud" = "sts.amazonaws.com"
-          "${local.oidc_provider_url}:sub" = "system:serviceaccount:${var.k8s_namespace}:${var.k8s_service_account_name}",
-        }
-      }
-      }
-
-    ]
-  })
-}
-
-# AWS IAM Policy 생성 (App이 사용할 S3 접근 권한)
-resource "aws_iam_policy" "app_s3_policy" {
-  name        = "${var.env}-app-s3-policy"
-  path        = "/"
-  description = "IAM policy for App Pod to access S3 via IRSA"
->>>>>>> origin/feature/KEJ_20260526/iam1
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-<<<<<<< HEAD
-        #  [Statement 1] AWS ECR 전체 서비스에 대한 로그인(인증) 권한
-        Sid    = "ECRAuthAPI"
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken"
-        ]
-        Resource = "*" # 로그인 API는 리소스 제한이 안 되므로 "*" 고정 (피드백 반영)
+        Sid      = "ECRAuthAPI"
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
+        Resource = "*"
       },
       {
-        #  [Statement 2] ECR 리포지토리에 대한 정밀 제어 권한
         Sid    = "ECRRepositoryActions"
         Effect = "Allow"
         Action = [
@@ -119,11 +77,54 @@ resource "aws_iam_policy" "app_s3_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
         ]
-
-        # 하드코딩 대신, 넘겨받은 URL 주소에서 레포지토리 이름만 쏙 뽑아내어 ARN을 동적으로 완성합니다!
         Resource = [
-          "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${split("/", var.ecr_repository_url)[1]}" #47 Line (data.aws_caller_identity.current.account_id)
-=======
+          "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${split("/", var.ecr_repository_url)[1]}"
+        ]
+      }
+    ]
+  })
+}
+
+# aws_iam_role_policy_attachment (ECR push 권한을 롤에 묶기)
+resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
+  role       = aws_iam_role.github_actions_ecr_role.name
+  policy_arn = aws_iam_policy.ecr_push_policy.arn
+}
+
+locals {
+  oidc_provider_url = replace(var.eks_oidc_provider_arn, "/^(.*)oidc-provider//", "")
+}
+
+resource "aws_iam_role" "app_irsa_role" {
+  name = "${var.env}-app-irsa-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = var.eks_oidc_provider_arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${local.oidc_provider_url}:aud" = "sts.amazonaws.com"
+          "${local.oidc_provider_url}:sub" = "system:serviceaccount:${var.k8s_namespace}:${var.k8s_service_account_name}"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_policy" "app_s3_policy" {
+  name        = "${var.env}-app-s3-policy"
+  path        = "/"
+  description = "IAM policy for App Pod to access S3 via IRSA"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
@@ -133,22 +134,13 @@ resource "aws_iam_policy" "app_s3_policy" {
         Resource = [
           "arn:aws:s3:::${var.s3_bucket_name}",
           "arn:aws:s3:::${var.s3_bucket_name}/*"
->>>>>>> origin/feature/KEJ_20260526/iam1
         ]
       }
     ]
   })
 }
 
-<<<<<<< HEAD
-# aws_iam_role_policy_attachment (ECR push 권한을 롤에 묶기)
-resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
-  role       = aws_iam_role.github_actions_ecr_role.name
-  policy_arn = aws_iam_policy.ecr_push_policy.arn
-=======
-# IAM Role과 Policy 연결 (Attachment)
 resource "aws_iam_role_policy_attachment" "app_irsa_attach" {
   role       = aws_iam_role.app_irsa_role.name
   policy_arn = aws_iam_policy.app_s3_policy.arn
->>>>>>> origin/feature/KEJ_20260526/iam1
 }
