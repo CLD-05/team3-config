@@ -24,6 +24,9 @@ module "eks" {
   github_actions_role_arns = {
     github_actions = module.iam.github_actions_role_arn
   }
+
+  #bastion
+  bastion_sg_id = module.bastion.bastion_sg_id
 }
 
 module "rds" {
@@ -49,4 +52,14 @@ module "iam" {
   k8s_namespace            = "app"
   k8s_service_account_name = "app-sa"
   s3_bucket_name           = var.s3_bucket_name
+}
+
+#bastion
+module "bastion" {
+  source = "../../modules/bastion"
+
+  env              = "dev"
+  vpc_id           = module.vpc.vpc_id
+  public_subnet_id = module.vpc.public_subnet_ids[0]
+  key_pair_name    = var.key_pair_name
 }

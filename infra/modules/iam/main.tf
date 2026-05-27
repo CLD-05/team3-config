@@ -24,9 +24,9 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
       ### test     = "StringEquals"
       ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:CLD-05/team3-testApp:*"]
+      values   = ["repo:CLD-05/team3-App:ref:refs/heads/main"]
     }
 
     principals {
@@ -143,4 +143,36 @@ resource "aws_iam_policy" "app_s3_policy" {
 resource "aws_iam_role_policy_attachment" "app_irsa_attach" {
   role       = aws_iam_role.app_irsa_role.name
   policy_arn = aws_iam_policy.app_s3_policy.arn
+}
+
+# ALB Controller IRSA Role
+resource "aws_iam_role" "alb_controller_irsa_role" {
+  name = "${var.env}-alb-controller-irsa-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = var.eks_oidc_provider_arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${local.oidc_provider_url}:aud" = "sts.amazonaws.com"
+          "${local.oidc_provider_url}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_policy" "alb_controller_policy" {
+  name   = "${var.env}-alb-controller-policy"
+  policy = file("${path.module}/alb_controller_policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+  role       = aws_iam_role.alb_controller_irsa_role.name
+  policy_arn = aws_iam_policy.alb_controller_policy.arn
 }

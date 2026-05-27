@@ -11,3 +11,8 @@ output "app_irsa_role_arn" {
   value       = aws_iam_role.app_irsa_role.arn
   description = "The ARN of the IAM Role to be annotated on the Kubernetes ServiceAccount (eks.amazonaws.com/role-arn)"
 }
+
+output "alb_controller_irsa_role_arn" {
+  description = "ALB Controller IRSA Role ARN (Helm 설치 시 주입)"
+  value       = aws_iam_role.alb_controller_irsa_role.arn
+}

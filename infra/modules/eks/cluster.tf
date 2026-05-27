@@ -28,3 +28,14 @@ resource "aws_eks_cluster" "this" {
     aws_iam_role_policy_attachment.eks_cluster_policy
   ]
 }
+
+#bastion
+resource "aws_security_group_rule" "bastion_to_eks" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = var.bastion_sg_id
+  security_group_id        = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  description              = "Bastion to EKS API Server"
+}
