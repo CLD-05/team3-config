@@ -1,5 +1,7 @@
 module "vpc" {
-  source = "../../modules/vpc"
+  source       = "../../modules/vpc"
+  env          = "dev"
+  cluster_name = "team3-dev-eks"
 }
 
 module "ecr" {
