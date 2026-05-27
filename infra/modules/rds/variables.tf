@@ -39,11 +39,13 @@ variable "env" {
 variable "rds_delete_protect" {
   type        = bool
   description = "루트 모듈로부터 전달받은 삭제 보호 여부"
+  default     = false
 }
 
 variable "multi_az" {
   type        = bool
   description = "루트 모듈로부터 전달받은 Multi-AZ 여부"
+  default     = false
 }
 
 variable "rds_backup_retention_period" {

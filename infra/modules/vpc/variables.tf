@@ -8,6 +8,5 @@ variable "env" {
 variable "cluster_name" {
   type        = string
   description = "EKS 클러스터 이름 (서브넷 태그용)"
-  default     = ""
-
+  default     = "10.0.0.0/16"
 }

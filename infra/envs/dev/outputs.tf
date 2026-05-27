@@ -34,3 +34,9 @@ output "app_irsa_role_arn" {
   description = "App Pod IRSA Role ARN (ServiceAccount annotation에 주입)"
   value       = module.iam.app_irsa_role_arn
 }
+
+#bastion
+output "bastion_public_ip" {
+  description = "Bastion 퍼블릭 IP (SSH 접속용)"
+  value       = module.bastion.bastion_public_ip
+}

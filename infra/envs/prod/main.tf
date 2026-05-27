@@ -24,8 +24,8 @@ module "eks" {
   node_min_size     = 2
   node_max_size     = 4
 
-  admin_user_arns         = var.admin_user_arns
-  github_actions_role_arn = module.iam.github_actions_role_arn
+  admin_user_arns          = var.admin_user_arns
+  github_actions_role_arns = module.iam.github_actions_role_arns
 }
 
 module "rds" {

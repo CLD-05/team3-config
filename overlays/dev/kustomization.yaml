@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  - path: patch-replicas.yaml
+
+images:
+  - name: foldy-app
+    newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
+    newTag: PLACEHOLDER  # CI/CD에서 git SHA로 자동 갱신
+
+secretGenerator:
+  - name: team3-app-secret
+    behavior: replace
+    type: Opaque
+    literals:
+      - DB_URL=$DEV_DB_URL
+      - DB_USERNAME=$DEV_DB_USERNAME
+      - DB_PASSWORD=$DEV_DB_PASSWORD
+      - JWT_SECRET=$DEV_DB_JWT_SECRET

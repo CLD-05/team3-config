@@ -1,5 +1,3 @@
-#eks/cluster.tf
-
 # EKS Control Plane 생성
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
@@ -15,6 +13,13 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = true
   }
 
+  ### 부트캠프 환경 권한 제한으로 적용 불가 (eks:UpdateClusterConfig 권한 없음)
+  ### 신규 클러스터 생성 시에는 아래 주석 해제 후 apply 하세요.
+  # access_config {
+  #   authentication_mode                         = "API_AND_CONFIG_MAP"
+  #   bootstrap_cluster_creator_admin_permissions = true
+  # }
+
   timeouts {
     create = "30m"
   }
@@ -22,4 +27,15 @@ resource "aws_eks_cluster" "this" {
   depends_on = [
     aws_iam_role_policy_attachment.eks_cluster_policy
   ]
+}
+
+#bastion
+resource "aws_security_group_rule" "bastion_to_eks" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = var.bastion_sg_id
+  security_group_id        = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  description              = "Bastion to EKS API Server"
 }
