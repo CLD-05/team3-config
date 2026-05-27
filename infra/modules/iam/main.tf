@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:CLD-05/team3-App:ref:refs/heads/main"]
+      values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
     }
 
     principals {
