@@ -1,0 +1,21 @@
+feat:
+  - head-branch: ["^feature/", "feature/"]
+fix:
+  - head-branch: ["^fix/", "fix/"]
+chore:
+  - head-branch: ["^chore/", "chore/"]
+ci:
+  - head-branch: ["^ci/", "ci/"]
+  - changed-files:
+    - any-glob-to-any-file: [".github/**"]
+infra:
+  - head-branch: ["^infra/", "infra/"]
+  - changed-files:
+    - any-glob-to-any-file: ["infra/**", "*.tf"]
+k8s:
+  - head-branch: ["^k8s/", "k8s/"]
+  - changed-files:
+    - any-glob-to-any-file: ["base/**", "overlays/**"]
+argocd:
+  - changed-files:
+    - any-glob-to-any-file: ["argocd/**"]
