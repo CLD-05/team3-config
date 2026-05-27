@@ -16,6 +16,21 @@ resource "aws_ecr_repository" "this" {
   }
 }
 
+# IAM용 Repository 생성
+resource "aws_ecr_repository" "iam" {
+  name = "${var.repository_name}-iam"
+  ### prod 환경 전환 시 IMMUTABLE로 변경하세요.
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  encryption_configuration {
+    ### 보안 요구사항이 높아지면 KMS로 전환하세요.
+    encryption_type = "AES256"
+  }
+}
+
 # ECR Lifecycle Policy 설정
 resource "aws_ecr_lifecycle_policy" "this" {
   repository = aws_ecr_repository.this.name
