@@ -1,5 +1,3 @@
-#eks/oidc.tf✅
-
 # EKS 클러스터의 TLS 인증서 가져오기 (Thumbprint 추출용)
 data "tls_certificate" "eks" {
   url = aws_eks_cluster.this.identity[0].oidc[0].issuer

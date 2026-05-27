@@ -1,5 +1,3 @@
-#iam/main.tf
-
 # GitHub Actions OIDC Role & Policy (ECR push용)
 # =================================================================
 
@@ -10,47 +8,47 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
 }
 
+# 현재 로그인된 AWS 계정 ID를 실시간으로 캐치하는 안테나
 data "aws_caller_identity" "current" {}
 
+# 내 깃허브 레포의 main 브랜치만 허용하는 신뢰 관계(Trust Policy) 정의
 data "aws_iam_policy_document" "github_actions_assume_role" {
-  statement {
+  statement { # ID/PW 대신 웹 인증서 토큰으로 임시 출입증(AWS가 발행한 토큰) 교환 허용
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
+    condition { # 깃허브 액션이 발급받은 일회용 명찰(GitHub Actions가 발행한 토큰)의 수신처(Audience)를 검사 
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:aud"
       values   = ["sts.amazonaws.com"]
     }
 
+    # 힌트: ...sub": "repo:org/repo:ref:refs/heads/main"
     condition {
-      ### StringLike + 와일드카드(*)는 모든 브랜치/이벤트에서 Role Assume이 가능합니다.
-      ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
-      ### test     = "StringEquals"
-      ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringLike"
+      test = "StringLike" # 테스트용 느슨한 일치 보안이 약하니 테스트 할 때만
+      # test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:CLD-05/team3-testApp:*"]
+      values   = ["repo:CLD-05/team3-testApp:*"] # 테스트용 team3-testApp 깃으로 연결 됨
+      # values = ["repo:CLD-05/team3-App:ref:refs/heads/main"]
     }
 
+    # 힌트: Principal Federated: token.actions.githubusercontent.com
     principals {
       identifiers = [aws_iam_openid_connect_provider.github.arn]
-      type        = "Federated"
+      type        = "Federated" #연합 인증(AWS 외부의 거대한 웹 시스템과 계정 체계를 연동할 때)
     }
   }
 }
 
+# aws_iam_role 생성 (위의 OIDC 조건문 포함)
 resource "aws_iam_role" "github_actions_ecr_role" {
-  ### Role 이름이 "dev-foldy-github-actions-ecr-role"로 하드코딩되어 있습니다.
-  ### var.env를 활용해 "${var.env}-foldy-github-actions-ecr-role"로 변경하면
-  ### prod 환경 분리 시 그대로 재사용할 수 있습니다.
   name               = "dev-foldy-github-actions-ecr-role"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
+# ECR Push 실제 권한 지침서 (Policy)
+# ECR Push 실제 권한 지침서 (Policy) - 모듈 동적 연동 및 팀 피드백 완벽 반영본!
 resource "aws_iam_policy" "ecr_push_policy" {
-  ### Policy 이름도 동일하게 하드코딩되어 있습니다.
-  ### "${var.env}-foldy-ecr-push-policy"로 변경하세요.
   name        = "dev-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
 
@@ -79,10 +77,6 @@ resource "aws_iam_policy" "ecr_push_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
         ]
-        ### ecr_repository_url에서 split으로 레포 이름을 추출하는 방식은
-        ### URL 형식이 바뀌면 조용히 깨질 수 있습니다.
-        ### ecr 모듈 outputs.tf에 repository_arn을 추가하고
-        ### 해당 ARN을 직접 받아 사용하는 방식으로 변경하세요.
         Resource = [
           "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${split("/", var.ecr_repository_url)[1]}"
         ]
@@ -91,6 +85,7 @@ resource "aws_iam_policy" "ecr_push_policy" {
   })
 }
 
+# aws_iam_role_policy_attachment (ECR push 권한을 롤에 묶기)
 resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
   role       = aws_iam_role.github_actions_ecr_role.name
   policy_arn = aws_iam_policy.ecr_push_policy.arn

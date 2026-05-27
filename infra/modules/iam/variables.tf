@@ -1,8 +1,4 @@
-#iam/variables.tf
 
-### ecr_repository_url 대신 ecr_repository_arn을 받도록 변경하세요.
-### ecr 모듈 outputs.tf에 repository_arn 추가 후 연동하면
-### split() 파싱 없이 ARN을 그대로 Resource에 사용할 수 있습니다.
 variable "ecr_repository_url" {
   type        = string
   description = "ECR 모듈에서 넘겨받을 리포지토리 주소 URL"

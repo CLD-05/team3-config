@@ -1,9 +1,4 @@
-#rds/main.tf
-
 resource "aws_security_group" "rds_sg" {
-  ### SG 이름이 "dev-foldy-rds-sg"로 하드코딩되어 있습니다.
-  ### iam/main.tf에서 지적한 것과 동일하게 var.env 변수를 추가해
-  ### "${var.env}-foldy-rds-sg"로 변경하면 prod 환경 분리 시 재사용할 수 있습니다.
   name        = "dev-foldy-rds-sg"
   description = "Security Group for RDS MySQL"
   vpc_id      = var.vpc_id
@@ -13,7 +8,7 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
-    security_groups = [var.eks_sg_id]
+    security_groups = [var.eks_sg_id] # EKS 노드 보안 그룹 ID를 소스로 걸어 격리
   }
 
   egress {
@@ -24,34 +19,36 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    ### 태그도 동일하게 var.env로 변경하세요.
     Name = "dev-foldy-rds-sg"
   }
 }
 
+# 2. AWS RDS DB Instance 생성 (MySQL 8.0 싱글 AZ 가성비 세팅)
 resource "aws_db_instance" "mysql" {
-  ### identifier, tags.Name도 동일하게 var.env로 변경하세요.
   identifier            = "dev-foldy-db-server"
   engine                = "mysql"
   engine_version        = "8.0"
-  instance_class        = "db.t3.micro"
+  instance_class        = "db.t3.micro" # DEV용 초소형/저비용 인스턴스 사양
   allocated_storage     = 20
-  max_allocated_storage = 50
+  max_allocated_storage = 50 # 용량 부족 시 자동 스케일링 허용
 
   db_name  = "foldy"
   username = "foldy"
-  ### username도 평문 하드코딩입니다. var.db_username 변수로 분리하세요.
   password = var.db_password
 
+  # VPC 모듈과 보안 그룹 연동
   db_subnet_group_name   = var.rds_subnet_group_name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 
-  availability_zone = "ap-northeast-2a"
-  multi_az          = false
+  # 다이어그램 사양 고정 (싱글 AZ로 비용 최소화)
+  availability_zone = "ap-northeast-2a" # 실제 인스턴스는 2a에만 생성
+  multi_az          = false             # Multi-AZ 복제 비활성화
 
-  publicly_accessible = false
-  skip_final_snapshot = true
-  deletion_protection = false
+  # 실습 편의성 옵션
+  publicly_accessible = false #  외부 인터넷 접속 차단
+  skip_final_snapshot = true  # terraform destroy 시 최종 스냅샷 생성 안 함
+  # 실수로 인프라가 날아가는 것을 방지하는 안전장치
+  deletion_protection = false # 현재 DEV 환경이므로 false로 두어 삭제를 허용하지만, 추후 PROD(운영) 환경 전환 시 반드시 true로 변경
 
   tags = {
     Name = "dev-foldy-mysql"

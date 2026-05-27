@@ -1,5 +1,3 @@
-#dev/backend
-
 terraform {
   backend "s3" {
     bucket         = "tfstate-lionkdt5-team3"

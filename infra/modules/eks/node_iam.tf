@@ -1,5 +1,3 @@
-#eks/node_iam.tf✅
-
 # EKS Node Group용 IAM Role
 resource "aws_iam_role" "eks_node" {
   name = "${var.cluster_name}-node-role"
