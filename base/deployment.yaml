@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foldy
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foldy
+  template:
+    metadata:
+      labels:
+        app: foldy
+    spec:
+      serviceAccountName: app-sa
+      containers:
+        - name: foldy
+          image: foldy-app  # Kustomize overlay에서 실제 ECR 이미지로 교체됨
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: foldy-config
+            - secretRef:
+                name: foldy-secret
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
