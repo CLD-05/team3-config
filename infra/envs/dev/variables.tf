@@ -28,15 +28,11 @@ variable "env" {
   description = "배포 환경 이름"
 }
 
-variable "db_username" {
-  type        = string
-  description = "RDS 마스터 계정명"
-}
-
 variable "rds_delete_protect" {
   type        = bool
   description = "RDS 삭제 보호 활성화 여부 (true/false)"
 }
+
 variable "vpc_cidr" {
   type        = string
   description = "VPC CIDR 블록 대역"
