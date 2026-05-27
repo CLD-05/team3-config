@@ -4,10 +4,8 @@
 # =================================================================
 
 # AWS 전역에 GitHub 자격 증명 공급자 등록
-resource "aws_iam_openid_connect_provider" "github" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
 }
 
 data "aws_iam_policy_document" "github_actions_assume_role" {
@@ -26,13 +24,14 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
       ### test     = "StringEquals"
       ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:CLD-05/team3-testApp:*"]
     }
 
     principals {
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      #  앞에 data. 를 꼭 붙여주어야 에러가 나지 않습니다.
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
       type        = "Federated"
     }
   }
