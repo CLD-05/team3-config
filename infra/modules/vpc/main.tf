@@ -1,26 +1,24 @@
-#vpc/main.tf
-
+# VPC 생성
 resource "aws_vpc" "main" {
-  ### CIDR, 태그 등이 하드코딩되어 있습니다.
-  ### rds/main.tf, iam/main.tf와 동일하게 var.env를 추가해
-  ### 태그를 "${var.env}-foldy-vpc"로 변경하면 prod 분리 시 재사용할 수 있습니다.
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
   tags = {
-    Name = "dev-foldy-vpc"
+    Name = "${var.env}-foldy-vpc"
   }
 }
 
+# 인터넷 게이트웨이
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "dev-foldy-igw"
+    Name = "${var.env}-foldy-igw"
   }
 }
 
+# 퍼블릭 서브넷
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -28,7 +26,7 @@ resource "aws_subnet" "public_a" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                     = "dev-subnet-public-a"
+    Name                     = "${var.env}-subnet-public-a"
     "kubernetes.io/role/elb" = "1"
   }
 }
@@ -40,24 +38,21 @@ resource "aws_subnet" "public_c" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                     = "dev-subnet-public-c"
+    Name                     = "${var.env}-subnet-public-c"
     "kubernetes.io/role/elb" = "1"
   }
 }
 
+# 프라이빗 서브넷 (EKS 노드용 — 클러스터 태그 포함)
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.11.0/24"
   availability_zone = "ap-northeast-2a"
 
   tags = {
-    Name                              = "dev-subnet-private-a"
-    "kubernetes.io/role/internal-elb" = "1"
-    ### EKS 노드가 배포되는 서브넷에는 클러스터 이름 태그도 추가해야
-    ### AWS Load Balancer Controller가 서브넷을 자동으로 인식합니다.
-    ### "kubernetes.io/cluster/${var.cluster_name}" = "shared" 를 추가하세요.
-    ### var.cluster_name 변수를 vpc 모듈에 추가하거나
-    ### 태그를 eks 모듈에서 aws_ec2_tag 리소스로 붙이는 방법 중 하나를 선택하세요.
+    Name                                        = "${var.env}-subnet-private-a"
+    "kubernetes.io/role/internal-elb"           = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
@@ -67,19 +62,20 @@ resource "aws_subnet" "private_c" {
   availability_zone = "ap-northeast-2c"
 
   tags = {
-    Name                              = "dev-subnet-private-c"
-    "kubernetes.io/role/internal-elb" = "1"
-    ### private_a와 동일하게 클러스터 이름 태그를 추가하세요.
+    Name                                        = "${var.env}-subnet-private-c"
+    "kubernetes.io/role/internal-elb"           = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
+# DB 서브넷
 resource "aws_subnet" "db_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.21.0/24"
   availability_zone = "ap-northeast-2a"
 
   tags = {
-    Name = "dev-subnet-db-a"
+    Name = "${var.env}-subnet-db-a"
   }
 }
 
@@ -89,13 +85,14 @@ resource "aws_subnet" "db_c" {
   availability_zone = "ap-northeast-2c"
 
   tags = {
-    Name = "dev-subnet-db-c"
+    Name = "${var.env}-subnet-db-c"
   }
 }
 
+# NAT 게이트웨이 및 EIP
 resource "aws_eip" "nat" {
   domain = "vpc"
-  tags   = { Name = "dev-nat-eip" }
+  tags   = { Name = "${var.env}-nat-eip" }
 }
 
 resource "aws_nat_gateway" "nat_gw" {
@@ -103,11 +100,12 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_a.id
 
   tags = {
-    Name = "dev-nat-gw"
+    Name = "${var.env}-nat-gw"
   }
   depends_on = [aws_internet_gateway.igw]
 }
 
+# 라우트 테이블
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -116,7 +114,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = { Name = "dev-rt-public" }
+  tags = { Name = "${var.env}-rt-public" }
 }
 
 resource "aws_route_table" "private" {
@@ -127,13 +125,10 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.nat_gw.id
   }
 
-  tags = { Name = "dev-rt-private" }
+  tags = { Name = "${var.env}-rt-private" }
 }
 
-### DB 서브넷용 라우트 테이블이 없습니다.
-### db_a, db_c 서브넷이 현재 어떤 라우트 테이블에도 연결되어 있지 않아
-### VPC 기본 라우트 테이블을 타게 됩니다.
-### aws_route_table_association으로 private 라우트 테이블에 명시적으로 연결하세요.
+# 퍼블릭 서브넷 라우트 연결
 resource "aws_route_table_association" "public_a" {
   subnet_id      = aws_subnet.public_a.id
   route_table_id = aws_route_table.public.id
@@ -144,6 +139,7 @@ resource "aws_route_table_association" "public_c" {
   route_table_id = aws_route_table.public.id
 }
 
+# 프라이빗 서브넷 라우트 연결
 resource "aws_route_table_association" "private_a" {
   subnet_id      = aws_subnet.private_a.id
   route_table_id = aws_route_table.private.id
@@ -154,11 +150,24 @@ resource "aws_route_table_association" "private_c" {
   route_table_id = aws_route_table.private.id
 }
 
+# DB 서브넷 라우트 연결 (가이드에서 누락 지적된 부분)
+resource "aws_route_table_association" "db_a" {
+  subnet_id      = aws_subnet.db_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "db_c" {
+  subnet_id      = aws_subnet.db_c.id
+  route_table_id = aws_route_table.private.id
+}
+
+# RDS 서브넷 그룹
 resource "aws_db_subnet_group" "rds_group" {
-  name       = "dev-foldy-rds-subnet-group"
+  name       = "${var.env}-foldy-rds-subnet-group"
   subnet_ids = [aws_subnet.db_a.id, aws_subnet.db_c.id]
 
   tags = {
-    Name = "dev-foldy-rds-subnet-group"
+    Name = "${var.env}-foldy-rds-subnet-group"
   }
 }
+
