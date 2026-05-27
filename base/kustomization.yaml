@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# 강혁 님 컴퓨터 base/ 폴더 안에 있는 6개의 공통 자원 파일들을 나열합니다.
 resources:
   - configmap.yaml
   - deployment.yaml
