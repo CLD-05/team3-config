@@ -22,7 +22,7 @@ spec:
             backend:
               service:
                 # service.yaml의 metadata.name과 같아야 함
-                name: foldy-service
+                name: foldy
                 port:
                   # service.yaml의 spec.ports.port와 같아야 함
                   number: 80
