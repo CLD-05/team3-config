@@ -49,4 +49,5 @@ variable "multi_az" {
 variable "rds_backup_retention_period" {
   type        = number
   description = "RDS 자동 백업 보존 기간"
+  default     = 0
 }
