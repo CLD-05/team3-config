@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: foldy-ingress
+  namespace: app
+  annotations:
+    # AWS ALB Controller가 이 Ingress를 보고 ALB를 생성함
+    kubernetes.io/ingress.class: alb
+
+    # 외부 인터넷에서 접근 가능한 ALB
+    alb.ingress.kubernetes.io/scheme: internet-facing
+
+    # ALB가 Pod IP로 직접 트래픽 전달
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # service.yaml의 metadata.name과 같아야 함
+                name: foldy-service
+                port:
+                  # service.yaml의 spec.ports.port와 같아야 함
+                  number: 80
