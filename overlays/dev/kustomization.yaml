@@ -10,4 +10,4 @@ patches:
 images:
   - name: foldy-app
     newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
-    newTag: latest  # CI/CD에서 git SHA로 자동 갱신
+    newTag: PLACEHOLDER  # CI/CD에서 git SHA로 자동 갱신
