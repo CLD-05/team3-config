@@ -1,28 +1,26 @@
 #eks/access.tf
 
 # ───────────────────────────────────────
-# 팀원 IAM User → 클러스터 admin 권한
+# aws-auth ConfigMap으로 팀원 권한 부여
+# ConfigMap 모드에서는 Access Entry 사용 불가
 # ───────────────────────────────────────
-resource "aws_eks_access_entry" "admin_users" {
-  for_each = toset(var.admin_user_arns)
-
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = each.value
-  type          = "STANDARD"
-}
-
-resource "aws_eks_access_policy_association" "admin_users" {
-  for_each = toset(var.admin_user_arns)
-
-  cluster_name  = aws_eks_cluster.this.name
-  principal_arn = each.value
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-
-  access_scope {
-    type = "cluster"
+resource "kubernetes_config_map_v1_data" "aws_auth" {
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
   }
 
-  depends_on = [aws_eks_access_entry.admin_users]
+  data = {
+    mapUsers = yamlencode([
+      for arn in var.admin_user_arns : {
+        userarn  = arn
+        username = split("/", arn)[1]
+        groups   = ["system:masters"]
+      }
+    ])
+  }
+
+  force = true
 }
 
 # ───────────────────────────────────────
