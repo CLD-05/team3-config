@@ -1,45 +1,41 @@
-#eks/variables.tf
-
 variable "cluster_name" {
-  description = "EKS cluster name"
+  description = "EKS 클러스터 이름 (예: team3-dev-eks, team3-prod-eks)"
   type        = string
 }
 
 variable "cluster_version" {
-  description = "EKS cluster version"
+  description = "EKS 컨트롤 플레인 Kubernetes 버전"
   type        = string
-  ### dev/main.tf에서 "1.30"을 넘기고 있는데 default가 "1.29"입니다.
-  ### 프로젝트 스택 기준(EKS 1.30)에 맞게 default = "1.30"으로 변경하세요.
-  default = "1.29"
+  default     = "1.30"
 }
 
 variable "private_subnet_ids" {
-  description = "Private subnet IDs for EKS cluster"
+  description = "EKS 클러스터/노드가 배치될 프라이빗 서브넷 ID 목록"
   type        = list(string)
 }
 
 variable "node_instance_types" {
-  ### description이 없습니다. 추가하세요.
-  type    = list(string)
-  default = ["t3.medium"]
+  description = "워커 노드 EC2 인스턴스 타입 목록"
+  type        = list(string)
+  default     = ["t3.medium"]
 }
 
 variable "node_desired_size" {
-  ### description이 없습니다. 추가하세요.
-  type    = number
-  default = 2
+  description = "노드 그룹 기본 노드 개수 (Auto Scaling 시작 시점 노드 수)"
+  type        = number
+  default     = 2
 }
 
 variable "node_min_size" {
-  ### description이 없습니다. 추가하세요.
-  type    = number
-  default = 0
+  description = "노드 그룹 최소 노드 개수 (Auto Scaling 하한)"
+  type        = number
+  default     = 0
 }
 
 variable "node_max_size" {
-  ### description이 없습니다. 추가하세요.
-  type    = number
-  default = 2
+  description = "노드 그룹 최대 노드 개수 (Auto Scaling 상한)"
+  type        = number
+  default     = 2
 }
 
 variable "admin_user_arns" {
@@ -48,8 +44,8 @@ variable "admin_user_arns" {
   default     = []
 }
 
-variable "github_actions_role_arn" {
-  description = "GitHub Actions가 사용할 IAM Role ARN (CD용)"
-  type        = string
-  default     = ""
+variable "github_actions_role_arns" {
+  description = "GitHub Actions IAM Role ARN 맵 (key: 식별자, value: Role ARN). 빈 맵이면 access entry 생성 안 함"
+  type        = map(string)
+  default     = {}
 }
