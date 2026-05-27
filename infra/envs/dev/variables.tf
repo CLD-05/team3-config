@@ -33,11 +33,6 @@ variable "rds_delete_protect" {
   description = "RDS 삭제 보호 활성화 여부 (true/false)"
 }
 
-variable "vpc_cidr" {
-  type        = string
-  description = "VPC CIDR 블록 대역"
-}
-
 variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
