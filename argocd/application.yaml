@@ -1,0 +1,26 @@
+# argocd/application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: foldy-dev
+# name: foldy-prod  
+  namespace: argocd
+
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CLD-05/team3-config.git
+    targetRevision: main
+    path: overlays/dev/
+#   path: overlays/prod/
+  destination:
+# kubectl cluster-info 정보 기입
+    server: https://01B727737AE2F0344B68A7EA2FF032A5.gr7.ap-northeast-2.eks.amazonaws.com
+    namespace: app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
