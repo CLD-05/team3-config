@@ -35,14 +35,14 @@ module "rds" {
   db_username           = var.db_username
 }
 
-### iam/variables.tf 를 해결한 후 이곳의 주석을 해제
-# module "iam" {
-#   source = "../../modules/iam"
+## iam/variables.tf 를 해결한 후 이곳의 주석을 해제
+module "iam" {
+  source = "../../modules/iam"
 
-#   env                      = "dev"
-#   ecr_repository_arn       = module.ecr.repository_arn
-#   eks_oidc_provider_arn    = module.eks.oidc_provider_arn
-#   k8s_namespace            = "app"
-#   k8s_service_account_name = "app-sa"
-#   s3_bucket_name           = var.s3_bucket_name
-# }
+  env                      = "dev"
+  ecr_repository_arn       = module.ecr.repository_arn
+  eks_oidc_provider_arn    = module.eks.oidc_provider_arn
+  k8s_namespace            = "app"
+  k8s_service_account_name = "app-sa"
+  s3_bucket_name           = var.s3_bucket_name
+}
