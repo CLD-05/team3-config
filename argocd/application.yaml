@@ -1,0 +1,41 @@
+# argocd/application.yaml
+
+### foldy-dev
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: foldy-dev  
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CLD-05/team3-config.git
+    targetRevision: main
+    path: overlays/dev/
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: app
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+### foldy-prod
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: foldy-prod  
+#   namespace: argocd
+# spec:
+#   project: default
+#   source:
+#     repoURL: https://github.com/CLD-05/team3-config.git
+#     targetRevision: main
+#     path: overlays/prod/
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: app
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true
