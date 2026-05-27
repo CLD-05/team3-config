@@ -37,3 +37,9 @@ variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
 }
+
+#bastion
+variable "key_pair_name" {
+  type        = string
+  description = "Bastion SSH 접속용 키페어 이름"
+}

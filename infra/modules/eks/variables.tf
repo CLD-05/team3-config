@@ -49,3 +49,9 @@ variable "github_actions_role_arns" {
   type        = map(string)
   default     = {}
 }
+
+#bastion
+variable "bastion_sg_id" {
+  type        = string
+  description = "Bastion 보안그룹 ID"
+}
