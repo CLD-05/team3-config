@@ -33,6 +33,8 @@ module "rds" {
   db_password           = var.db_password
   env                   = "dev"
   db_username           = var.db_username
+  rds_delete_protect    = var.rds_delete_protect
+  multi_az              = var.rds_multi_az
 }
 
 ### iam/variables.tf 를 해결한 후 이곳의 주석을 해제
