@@ -41,16 +41,16 @@ module "rds" {
   # deletion_protection   = true
 }
 
-# module "iam" {
-#   source = "../../modules/iam"
+module "iam" {
+  source = "../../modules/iam"
 
-#   env                      = "prod"
-#   ecr_repository_arn       = module.ecr.repository_arn
-#   eks_oidc_provider_arn    = module.eks.oidc_provider_arn
-#   k8s_namespace            = "app"
-#   k8s_service_account_name = "app-sa"
-#   s3_bucket_name           = var.s3_bucket_name
-# }
+  env                      = "prod"
+  ecr_repository_arn       = module.ecr.repository_arn
+  eks_oidc_provider_arn    = module.eks.oidc_provider_arn
+  k8s_namespace            = "app"
+  k8s_service_account_name = "app-sa"
+  s3_bucket_name           = var.s3_bucket_name
+}
 
 # prod는 Multi-AZ를 활성화해 장애 시 자동 페일오버를 지원합니다.
 # hint: rds/variables.tf에 multi_az 변수를 추가하고
