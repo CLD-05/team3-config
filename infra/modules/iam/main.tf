@@ -10,8 +10,6 @@ resource "aws_iam_openid_connect_provider" "github" {
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
 }
 
-data "aws_caller_identity" "current" {}
-
 data "aws_iam_policy_document" "github_actions_assume_role" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -28,7 +26,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
       ### test     = "StringEquals"
       ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:CLD-05/team3-testApp:*"]
     }
@@ -42,16 +40,16 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 
 resource "aws_iam_role" "github_actions_ecr_role" {
   ### Role 이름이 "dev-foldy-github-actions-ecr-role"로 하드코딩되어 있습니다.
-  ### var.env를 활용해 "${var.env}-foldy-github-actions-ecr-role"로 변경하면
+  ### var.env를 활용해 "${var.env}-foldy-github-actions-ecr-role"로 변경하면(변경완료)
   ### prod 환경 분리 시 그대로 재사용할 수 있습니다.
-  name               = "dev-foldy-github-actions-ecr-role"
+  name               = "${var.env}-foldy-github-actions-ecr-role"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
 resource "aws_iam_policy" "ecr_push_policy" {
   ### Policy 이름도 동일하게 하드코딩되어 있습니다.
-  ### "${var.env}-foldy-ecr-push-policy"로 변경하세요.
-  name        = "dev-foldy-ecr-push-policy"
+  ### "${var.env}-foldy-ecr-push-policy"로 변경하세요.(변경 완료)
+  name        = "${var.env}-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
 
   policy = jsonencode({
@@ -82,10 +80,8 @@ resource "aws_iam_policy" "ecr_push_policy" {
         ### ecr_repository_url에서 split으로 레포 이름을 추출하는 방식은
         ### URL 형식이 바뀌면 조용히 깨질 수 있습니다.
         ### ecr 모듈 outputs.tf에 repository_arn을 추가하고
-        ### 해당 ARN을 직접 받아 사용하는 방식으로 변경하세요.
-        Resource = [
-          "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${split("/", var.ecr_repository_url)[1]}"
-        ]
+        ### 해당 ARN을 직접 받아 사용하는 방식으로 변경하세요.(변경 완료)
+        Resource = [var.ecr_repository_arn]
       }
     ]
   })
