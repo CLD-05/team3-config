@@ -23,3 +23,31 @@ variable "admin_user_arns" {
   type        = list(string)
   default     = []
 }
+variable "env" {
+  type        = string
+  description = "배포 환경 이름"
+}
+
+variable "db_username" {
+  type        = string
+  description = "RDS 마스터 계정명"
+}
+
+variable "rds_delete_protect" {
+  type        = bool
+  description = "RDS 삭제 보호 활성화 여부 (true/false)"
+}
+variable "vpc_cidr" {
+  type        = string
+  description = "VPC CIDR 블록 대역"
+}
+
+variable "rds_multi_az" {
+  type        = bool
+  description = "RDS 멀티 AZ 활성화 여부"
+}
+
+variable "rds_backup_retention_period" {
+  type        = number
+  description = "RDS 자동 백업 보존 기간"
+}
