@@ -4,8 +4,6 @@ metadata:
   name: foldy-ingress
   namespace: app
   annotations:
-    # AWS ALB Controller가 이 Ingress를 보고 ALB를 생성함
-    kubernetes.io/ingress.class: alb
 
     # 외부 인터넷에서 접근 가능한 ALB
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -13,6 +11,9 @@ metadata:
     # ALB가 Pod IP로 직접 트래픽 전달
     alb.ingress.kubernetes.io/target-type: ip
 spec:
+  # 사용할 Ingress Controller 지정
+  ingressClassName: alb
+
   rules:
     - http:
         paths:
