@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
       ### test     = "StringEquals"
       ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values   = ["repo:CLD-05/team3-App:ref:refs/heads/main"]
     }
