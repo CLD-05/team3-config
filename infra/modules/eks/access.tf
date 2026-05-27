@@ -32,29 +32,23 @@ resource "aws_eks_access_policy_association" "admin_users" {
 ### 지금 해제하면 iam 모듈과 순환참조가 발생합니다.
 ### 해제 순서: 1) iam 모듈 apply 완료 → 2) role ARN 확인 → 3) 주석 해제 후 재apply
 # resource "aws_eks_access_entry" "github_actions" {
-#   count = var.github_actions_role_arn != "" ? 1 : 0
+#   for_each = var.github_actions_role_arns
 
 #   cluster_name  = aws_eks_cluster.this.name
-#   principal_arn = var.github_actions_role_arn
+#   principal_arn = each.value
 #   type          = "STANDARD"
-
-#   lifecycle {
-#     precondition {
-#       condition     = var.github_actions_role_arn != ""
-#       error_message = "github_actions_role_arn must not be empty"
-#     }
-#   }
 # }
 
 # resource "aws_eks_access_policy_association" "github_actions" {
-#   count = var.github_actions_role_arn != "" ? 1 : 0
+#   for_each = var.github_actions_role_arns
 
 #   cluster_name  = aws_eks_cluster.this.name
-#   principal_arn = var.github_actions_role_arn
+#   principal_arn = each.value
 #   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
 
 #   access_scope {
-#     type = "cluster"
+#     type       = "namespace"
+#     namespaces = ["app"]
 #   }
 
 #   depends_on = [aws_eks_access_entry.github_actions]
