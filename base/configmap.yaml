@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foldy-app-config
+  namespace: app
+  labels:
+    app: foldy
+data:
+  APP_ENV: "dev"
+  LOG_LEVEL: "DEBUG"
+
+  # AWS
+  AWS_REGION: "ap-northeast-2"
+  S3_BUCKET: "team3-foldy-storage"
+
+  # JWT
+  JWT_EXPIRATION: "3600000"
