@@ -42,8 +42,3 @@ variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
 }
-
-variable "rds_backup_retention_period" {
-  type        = number
-  description = "RDS 자동 백업 보존 기간"
-}
