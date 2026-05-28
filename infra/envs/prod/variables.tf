@@ -62,3 +62,9 @@ variable "key_pair_name" {
   type        = string
   description = "Bastion SSH 접속용 키페어 이름"
 }
+
+variable "force_destroy" {
+  type        = bool
+  description = "S3 버킷 내부에 존재하는 모든 파일 삭제 활성화 여부 (true/false)"
+}
+
