@@ -11,7 +11,7 @@ data:
 
   # AWS
   AWS_REGION: "ap-northeast-2"
-  S3_BUCKET: "team3-foldy-storage"
+  AWS_S3_BUCKET: "team3-foldy-storage"
 
   # JWT
   JWT_EXPIRATION: "3600000"
