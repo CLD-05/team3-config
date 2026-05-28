@@ -13,11 +13,8 @@ images:
   newTag: sha-7a76170
 
 secretGenerator:
-- behavior: create
-  literals:
-  - DB_URL=$DEV_DB_URL
-  - DB_USERNAME=$DEV_DB_USERNAME
-  - DB_PASSWORD=$DEV_DB_PASSWORD
-  - JWT_SECRET=$DEV_DB_JWT_SECRET
-  name: team3-app-secret
+- name: team3-app-secret
+  behavior: create
   type: Opaque
+  envs:
+  - .env
