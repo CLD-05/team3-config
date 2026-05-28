@@ -68,7 +68,7 @@ module "bastion" {
 # 🔹 S3 정적 저장소 아키텍처 연동 (Presigned URL 업로드용)
 resource "aws_s3_bucket" "app_storage" {
   bucket        = var.s3_bucket_name
-  force_destroy = false # ⚠️ 운영(prod) 데이터 오삭제 방지를 위해 false 권장
+  force_destroy = var.force_destroy # ⚠️ 운영(prod) 데이터 오삭제 방지를 위해 false 권장
 
   tags = {
     Name = var.s3_bucket_name
