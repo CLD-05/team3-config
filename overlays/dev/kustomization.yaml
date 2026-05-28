@@ -10,4 +10,4 @@ patches:
 images:
 - name: foldy-app
   newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
-  newTag: sha-d5804ba
+  newTag: sha-7421f4b
