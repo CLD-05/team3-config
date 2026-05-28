@@ -22,7 +22,7 @@ spec:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: foldy-config
+                name: foldy-app-config
             - secretRef:
                 name: foldy-secret
           resources:
