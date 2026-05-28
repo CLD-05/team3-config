@@ -28,36 +28,25 @@ variable "admin_user_arns" {
   type        = list(string)
   default     = []
 }
-<<<<<<< HEAD
 
 variable "rds_delete_protect" {
   type        = bool
   description = "RDS 삭제 보호 활성화 여부"
   default     = true
-=======
+}
+
 variable "env" {
   type        = string
   description = "배포 환경 이름"
 }
 
-variable "rds_delete_protect" {
-  type        = bool
-  description = "RDS 삭제 보호 활성화 여부 (true/false)"
->>>>>>> 6c17ecf (feat:prod/main.tf fix:vpc/main.tf)
-}
-
 variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
-<<<<<<< HEAD
   default     = true
 }
 
-=======
-}
-
 #bastion
->>>>>>> 6c17ecf (feat:prod/main.tf fix:vpc/main.tf)
 variable "key_pair_name" {
   type        = string
   description = "Bastion SSH 접속용 키페어 이름"

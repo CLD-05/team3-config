@@ -42,6 +42,7 @@ module "rds" {
   env                   = "prod"
   rds_delete_protect    = var.rds_delete_protect
   multi_az              = var.rds_multi_az
+  bastion_sg_id         = module.bastion.bastion_sg_id
 }
 
 module "iam" {
@@ -66,9 +67,10 @@ module "bastion" {
 }
 
 # 🔹 S3 정적 저장소 아키텍처 연동 (Presigned URL 업로드용)
+#S3
 resource "aws_s3_bucket" "app_storage" {
   bucket        = var.s3_bucket_name
-  force_destroy = var.force_destroy # ⚠️ 운영(prod) 데이터 오삭제 방지를 위해 false 권장
+  force_destroy = true
 
   tags = {
     Name = var.s3_bucket_name
@@ -82,11 +84,36 @@ resource "aws_s3_bucket_cors_configuration" "app_storage" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
-    allowed_origins = ["*"] # 💡 추후 프론트엔드 도메인이 확정되면 특정 도메인으로 제한 권장
+    allowed_origins = ["*"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
 }
+
+resource "aws_s3_bucket_public_access_block" "app_storage" {
+  bucket = aws_s3_bucket.app_storage.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_policy" "app_storage" {
+  bucket     = aws_s3_bucket.app_storage.id
+  depends_on = [aws_s3_bucket_public_access_block.app_storage]
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "s3:GetObject"
+      Resource  = "${aws_s3_bucket.app_storage.arn}/*"
+    }]
+  })
+}
+
 
 # prod는 Multi-AZ를 활성화해 장애 시 자동 페일오버를 지원합니다.
 # hint: rds/variables.tf에 multi_az 변수를 추가하고
