@@ -34,3 +34,22 @@ output "app_irsa_role_arn" {
   description = "App Pod IRSA Role ARN (ServiceAccount annotation에 주입)"
   value       = module.iam.app_irsa_role_arn
 }
+
+output "rds_db_name" {
+  description = "RDS 데이터베이스 이름 (K8s Secret 주입용)"
+  value       = module.rds.db_name
+}
+
+output "rds_db_username" {
+  description = "RDS 마스터 계정 이름 (K8s Secret 주입용)"
+  value       = module.rds.db_username
+}
+
+output "alb_controller_irsa_role_arn" {
+  description = "AWS Load Balancer Controller IRSA Role ARN"
+  value       = module.iam.alb_controller_irsa_role_arn
+}
+
+output "bastion_public_ip" {
+  value = module.bastion.bastion_public_ip
+}
