@@ -23,3 +23,20 @@ variable "admin_user_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "rds_delete_protect" {
+  type        = bool
+  description = "RDS 삭제 보호 활성화 여부"
+  default     = true
+}
+
+variable "rds_multi_az" {
+  type        = bool
+  description = "RDS 멀티 AZ 활성화 여부"
+  default     = true
+}
+
+variable "key_pair_name" {
+  type        = string
+  description = "Bastion SSH 접속용 키페어 이름"
+}
