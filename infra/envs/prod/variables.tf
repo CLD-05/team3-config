@@ -18,6 +18,11 @@ variable "s3_bucket_name" {
   default     = "team3-foldy-prod-storage"
 }
 
+variable "env" {
+  type        = string
+  description = "배포 환경 이름"
+}
+
 variable "admin_user_arns" {
   description = "EKS 클러스터 admin 권한 IAM User ARN 목록"
   type        = list(string)
