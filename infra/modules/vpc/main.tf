@@ -181,3 +181,12 @@ resource "aws_db_subnet_group" "rds_group" {
   }
 }
 
+# VPC 기본 라우팅 테이블 태그
+resource "aws_default_route_table" "default" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
+
+  tags = {
+    Name = "team3-${var.env}-rt-default"
+    Team = "team3"
+  }
+}
