@@ -5,7 +5,8 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name = "${var.env}-foldy-vpc"
+    Name = "team3-${var.env}-vpc"
+    Team = "team3"
   }
 }
 
@@ -14,7 +15,8 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.env}-foldy-igw"
+    Name = "team3-${var.env}-igw"
+    Team = "team3"
   }
 }
 
@@ -26,8 +28,9 @@ resource "aws_subnet" "public_a" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                     = "${var.env}-subnet-public-a"
+    Name                     = "team3-${var.env}-subnet-public-a"
     "kubernetes.io/role/elb" = "1"
+    Team                     = "team3"
   }
 }
 
@@ -38,8 +41,9 @@ resource "aws_subnet" "public_c" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                     = "${var.env}-subnet-public-c"
+    Name                     = "team3-${var.env}-subnet-public-c"
     "kubernetes.io/role/elb" = "1"
+    Team                     = "team3"
   }
 }
 
@@ -50,9 +54,10 @@ resource "aws_subnet" "private_a" {
   availability_zone = "ap-northeast-2a"
 
   tags = {
-    Name                                        = "${var.env}-subnet-private-a"
+    Name                                        = "team3-${var.env}-subnet-private-a"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    Team                                        = "team3"
   }
 }
 
@@ -62,9 +67,10 @@ resource "aws_subnet" "private_c" {
   availability_zone = "ap-northeast-2c"
 
   tags = {
-    Name                                        = "${var.env}-subnet-private-c"
+    Name                                        = "team3-${var.env}-subnet-private-c"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    Team                                        = "team3"
   }
 }
 
@@ -75,7 +81,8 @@ resource "aws_subnet" "db_a" {
   availability_zone = "ap-northeast-2a"
 
   tags = {
-    Name = "${var.env}-subnet-db-a"
+    Name = "team3-${var.env}-subnet-db-a"
+    Team = "team3"
   }
 }
 
@@ -85,14 +92,15 @@ resource "aws_subnet" "db_c" {
   availability_zone = "ap-northeast-2c"
 
   tags = {
-    Name = "${var.env}-subnet-db-c"
+    Name = "team3-${var.env}-subnet-db-c"
+    Team = "team3"
   }
 }
 
 # NAT 게이트웨이 및 EIP
 resource "aws_eip" "nat" {
   domain = "vpc"
-  tags   = { Name = "${var.env}-nat-eip" }
+  tags   = { Name = "team3-${var.env}-nat-eip", Team = "team3" }
 }
 
 resource "aws_nat_gateway" "nat_gw" {
@@ -100,7 +108,8 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_a.id
 
   tags = {
-    Name = "${var.env}-nat-gw"
+    Name = "team3-${var.env}-nat-gw"
+    Team = "team3"
   }
   depends_on = [aws_internet_gateway.igw]
 }
@@ -114,7 +123,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = { Name = "${var.env}-rt-public" }
+  tags = { Name = "team3-${var.env}-rt-public", Team = "team3" }
 }
 
 resource "aws_route_table" "private" {
@@ -125,7 +134,7 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.nat_gw.id
   }
 
-  tags = { Name = "${var.env}-rt-private" }
+  tags = { Name = "team3-${var.env}-rt-private", Team = "team3" }
 }
 
 # 퍼블릭 서브넷 라우트 연결
@@ -163,11 +172,12 @@ resource "aws_route_table_association" "db_c" {
 
 # RDS 서브넷 그룹
 resource "aws_db_subnet_group" "rds_group" {
-  name       = "${var.env}-foldy-rds-subnet-group"
+  name       = "team3-${var.env}-rds-subnet-group"
   subnet_ids = [aws_subnet.db_a.id, aws_subnet.db_c.id]
 
   tags = {
-    Name = "${var.env}-foldy-rds-subnet-group"
+    Name = "team3-${var.env}-rds-subnet-group"
+    Team = "team3"
   }
 }
 

@@ -2,7 +2,7 @@
 
 # EKS Node Group용 IAM Role
 resource "aws_iam_role" "eks_node" {
-  name = "${var.cluster_name}-node-role"
+  name = "team3-${var.cluster_name}-node-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

@@ -17,7 +17,7 @@ module "eks" {
   source = "../../modules/eks"
 
   cluster_name       = "team3-dev-eks"
-  cluster_version    = "1.30"
+  cluster_version    = "1.35"
   private_subnet_ids = module.vpc.private_subnet_ids
 
   admin_user_arns = var.admin_user_arns

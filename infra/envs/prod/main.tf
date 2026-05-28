@@ -17,15 +17,18 @@ module "eks" {
   source = "../../modules/eks"
 
   cluster_name       = "team3-prod-eks"
-  cluster_version    = "1.30"
+  cluster_version    = "1.35"
   private_subnet_ids = module.vpc.private_subnet_ids
 
   node_desired_size = 2
   node_min_size     = 2
   node_max_size     = 4
 
-  admin_user_arns          = var.admin_user_arns
-  github_actions_role_arns = module.iam.github_actions_role_arns
+  admin_user_arns = var.admin_user_arns
+  github_actions_role_arns = {
+    github_actions = module.iam.github_actions_role_arn
+  }
+  bastion_sg_id = module.bastion.bastion_sg_id
 }
 
 module "rds" {

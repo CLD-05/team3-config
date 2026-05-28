@@ -10,6 +10,10 @@ metadata:
 
     # ALB가 Pod IP로 직접 트래픽 전달
     alb.ingress.kubernetes.io/target-type: ip
+
+    alb.ingress.kubernetes.io/tags: Team=team3,Environment=dev,ManagedBy=terraform
+
+    alb.ingress.kubernetes.io/load-balancer-name: team3-dev-alb
 spec:
   # 사용할 Ingress Controller 지정
   ingressClassName: alb

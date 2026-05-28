@@ -11,6 +11,14 @@ resource "kubernetes_config_map_v1_data" "aws_auth" {
   }
 
   data = {
+    mapRoles = yamlencode([
+      {
+        rolearn  = aws_iam_role.eks_node.arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups   = ["system:bootstrappers", "system:nodes"]
+      }
+    ])
+
     mapUsers = yamlencode([
       for arn in var.admin_user_arns : {
         userarn  = arn

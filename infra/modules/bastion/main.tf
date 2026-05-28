@@ -1,6 +1,6 @@
 # Bastion Security Group
 resource "aws_security_group" "bastion_sg" {
-  name        = "${var.env}-foldy-bastion-sg"
+  name        = "team3-${var.env}-foldy-bastion-sg"
   description = "Security Group for Bastion Host"
   vpc_id      = var.vpc_id
 
@@ -20,7 +20,8 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   tags = {
-    Name = "${var.env}-foldy-bastion-sg"
+    Name = "team3-${var.env}-foldy-bastion-sg"
+    Team = "team3"
   }
 }
 
@@ -34,6 +35,7 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
 
   tags = {
-    Name = "${var.env}-foldy-bastion"
+    Name = "team3-${var.env}-foldy-bastion"
+    Team = "team3"
   }
 }

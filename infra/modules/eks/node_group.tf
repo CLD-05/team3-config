@@ -4,7 +4,7 @@
 resource "aws_eks_node_group" "this" {
 
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.cluster_name}-node-group"
+  node_group_name = "team3-${var.cluster_name}-node-group"
   node_role_arn   = aws_iam_role.eks_node.arn
   subnet_ids      = var.private_subnet_ids
   instance_types  = var.node_instance_types
@@ -17,7 +17,8 @@ resource "aws_eks_node_group" "this" {
 
   # 노드 EC2에 이름 태그 추가
   tags = {
-    Name = "${var.cluster_name}-node"
+    Name = "team3-${var.cluster_name}-node"
+    Team = "team3"
   }
 
   depends_on = [

@@ -12,6 +12,7 @@ resource "aws_iam_openid_connect_provider" "this" {
   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
 
   tags = {
-    Name = "${aws_eks_cluster.this.name}-oidc"
+    Name = "team3-${aws_eks_cluster.this.name}-oidc"
+    Team = "team3"
   }
 }

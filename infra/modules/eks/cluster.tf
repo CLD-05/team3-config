@@ -15,10 +15,16 @@ resource "aws_eks_cluster" "this" {
 
   ### 부트캠프 환경 권한 제한으로 적용 불가 (eks:UpdateClusterConfig 권한 없음)
   ### 신규 클러스터 생성 시에는 아래 주석 해제 후 apply 하세요.
-  # access_config {
-  #   authentication_mode                         = "API_AND_CONFIG_MAP"
-  #   bootstrap_cluster_creator_admin_permissions = true
-  # }
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
+  # 클러스터 보안그룹에 태그 추가
+  tags = {
+    Name = "team3-${var.cluster_name}-cluster"
+    Team = "team3"
+  }
 
   timeouts {
     create = "30m"

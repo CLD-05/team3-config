@@ -20,13 +20,12 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     }
 
     condition {
-      ### StringLike + 와일드카드(*)는 모든 브랜치/이벤트에서 Role Assume이 가능합니다.
-      ### 테스트 완료 후 아래와 같이 반드시 변경하세요.
-      ### test     = "StringEquals"
-      ### values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:CLD-05/team3-app:ref:refs/heads/main"]
+      values = [
+        "repo:CLD-05/team3-app:ref:refs/heads/main",
+        "repo:CLD-05/team3-app:ref:refs/tags/*"
+      ]
     }
 
     principals {
@@ -41,14 +40,14 @@ resource "aws_iam_role" "github_actions_ecr_role" {
   ### Role 이름이 "dev-foldy-github-actions-ecr-role"로 하드코딩되어 있습니다.
   ### var.env를 활용해 "${var.env}-foldy-github-actions-ecr-role"로 변경하면(변경완료)
   ### prod 환경 분리 시 그대로 재사용할 수 있습니다.
-  name               = "${var.env}-foldy-github-actions-ecr-role"
+  name               = "team3-${var.env}-foldy-github-actions-ecr-role"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
 }
 
 resource "aws_iam_policy" "ecr_push_policy" {
   ### Policy 이름도 동일하게 하드코딩되어 있습니다.
   ### "${var.env}-foldy-ecr-push-policy"로 변경하세요.(변경 완료)
-  name        = "${var.env}-foldy-ecr-push-policy"
+  name        = "team3-${var.env}-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
 
   policy = jsonencode({
@@ -96,7 +95,7 @@ locals {
 }
 
 resource "aws_iam_role" "app_irsa_role" {
-  name = "${var.env}-app-irsa-role"
+  name = "team3-${var.env}-app-irsa-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -117,7 +116,7 @@ resource "aws_iam_role" "app_irsa_role" {
 }
 
 resource "aws_iam_policy" "app_s3_policy" {
-  name        = "${var.env}-app-s3-policy"
+  name        = "team3-${var.env}-app-s3-policy"
   path        = "/"
   description = "IAM policy for App Pod to access S3 via IRSA"
 
@@ -147,7 +146,7 @@ resource "aws_iam_role_policy_attachment" "app_irsa_attach" {
 
 # ALB Controller IRSA Role
 resource "aws_iam_role" "alb_controller_irsa_role" {
-  name = "${var.env}-alb-controller-irsa-role"
+  name = "team3-${var.env}-alb-controller-irsa-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -168,7 +167,7 @@ resource "aws_iam_role" "alb_controller_irsa_role" {
 }
 
 resource "aws_iam_policy" "alb_controller_policy" {
-  name   = "${var.env}-alb-controller-policy"
+  name   = "team3-${var.env}-alb-controller-policy"
   policy = file("${path.module}/alb_controller_policy.json")
 }
 

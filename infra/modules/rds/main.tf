@@ -4,7 +4,7 @@ resource "aws_security_group" "rds_sg" {
   ### SG 이름이 "dev-foldy-rds-sg"로 하드코딩되어 있습니다.
   ### iam/main.tf에서 지적한 것과 동일하게 var.env 변수를 추가해
   ### "${var.env}-foldy-rds-sg"로 변경하면 prod 환경 분리 시 재사용할 수 있습니다.
-  name        = "dev-foldy-rds-sg"
+  name        = "team3-${var.env}-rds-sg"
   description = "Security Group for RDS MySQL"
   vpc_id      = var.vpc_id
 
@@ -25,7 +25,8 @@ resource "aws_security_group" "rds_sg" {
 
   tags = {
     ### 태그도 동일하게 var.env로 변경하세요.
-    Name = "dev-foldy-rds-sg"
+    Name = "team3-${var.env}-rds-sg"
+    Team = "team3"
   }
 }
 
@@ -54,6 +55,6 @@ resource "aws_db_instance" "mysql" {
   deletion_protection = false
 
   tags = {
-    Name = "dev-foldy-mysql"
+    Name = "team3-${var.env}-mysql"
   }
 }
