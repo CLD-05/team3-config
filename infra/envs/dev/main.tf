@@ -64,3 +64,26 @@ module "bastion" {
   public_subnet_id = module.vpc.public_subnet_ids[0]
   key_pair_name    = var.key_pair_name
 }
+
+#S3
+resource "aws_s3_bucket" "app_storage" {
+  bucket        = var.s3_bucket_name
+  force_destroy = true
+
+  tags = {
+    Name = var.s3_bucket_name
+    Team = "team3"
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "app_storage" {
+  bucket = aws_s3_bucket.app_storage.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
