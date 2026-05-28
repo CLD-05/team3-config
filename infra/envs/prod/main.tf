@@ -40,8 +40,8 @@ module "rds" {
   db_password           = var.db_password
   db_username           = var.db_username
   env                   = "prod"
-  # multi_az              = true
-  # deletion_protection   = true
+  rds_delete_protect    = var.rds_delete_protect
+  multi_az              = var.rds_multi_az
 }
 
 module "iam" {
@@ -53,6 +53,39 @@ module "iam" {
   k8s_namespace            = "app"
   k8s_service_account_name = "app-sa"
   s3_bucket_name           = var.s3_bucket_name
+}
+
+# 🔹 Bastion 모듈 추가 (EKS 인프라 및 RDS 내부 접근 제어용으로 유지)
+module "bastion" {
+  source = "../../modules/bastion"
+
+  env              = "prod"
+  vpc_id           = module.vpc.vpc_id
+  public_subnet_id = module.vpc.public_subnet_ids[0]
+  key_pair_name    = var.key_pair_name
+}
+
+# 🔹 S3 정적 저장소 아키텍처 연동 (Presigned URL 업로드용)
+resource "aws_s3_bucket" "app_storage" {
+  bucket        = var.s3_bucket_name
+  force_destroy = false # ⚠️ 운영(prod) 데이터 오삭제 방지를 위해 false 권장
+
+  tags = {
+    Name = var.s3_bucket_name
+    Team = "team3"
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "app_storage" {
+  bucket = aws_s3_bucket.app_storage.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "PUT", "POST", "DELETE", "HEAD"]
+    allowed_origins = ["*"] # 💡 추후 프론트엔드 도메인이 확정되면 특정 도메인으로 제한 권장
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
 
 # prod는 Multi-AZ를 활성화해 장애 시 자동 페일오버를 지원합니다.
