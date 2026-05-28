@@ -53,3 +53,9 @@ variable "rds_backup_retention_period" {
   description = "RDS 자동 백업 보존 기간"
   default     = 0
 }
+
+variable "bastion_sg_id" {
+  type        = string
+  description = "Bastion 보안그룹 ID"
+  default     = ""
+}

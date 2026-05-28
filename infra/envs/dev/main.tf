@@ -35,6 +35,7 @@ module "rds" {
   vpc_id                = module.vpc.vpc_id
   rds_subnet_group_name = module.vpc.rds_subnet_group_name
   eks_sg_id             = module.eks.node_security_group_id
+  bastion_sg_id         = module.bastion.bastion_sg_id
   db_password           = var.db_password
   env                   = "dev"
   db_username           = var.db_username
