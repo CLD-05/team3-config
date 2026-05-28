@@ -24,7 +24,7 @@ spec:
             - configMapRef:
                 name: foldy-app-config
             - secretRef:
-                name: foldy-app-secret
+                name: team3-app-secret
           resources:
             requests:
               cpu: 250m
