@@ -33,4 +33,64 @@
 # 참고: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
 # ─────────────────────────────────────────────────────────────
 
-# 여기에 values 작성
+# ── Grafana ──────────────────────────────────────────────────
+grafana:
+  # 추후 k8s Secret으로 교체 권장
+  adminPassword: "foldy-grafana-2026"
+
+  # 외부 노출은 grafana-ingress.yaml 에서 별도 처리
+  ingress:
+    enabled: false
+
+  # 학습용 — 재시작 시 설정 초기화됨 (비용 절약)
+  persistence:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ── Prometheus ───────────────────────────────────────────────
+prometheus:
+  prometheusSpec:
+    # 학습용이라 짧게 설정 (기본 15d → 7d로 단축)
+    retention: 7d
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    # emptyDir: 재시작 시 메트릭 날아감 — 학습용으로 충분
+    storageSpec:
+      emptyDir:
+        medium: ""
+
+    # foldy ServiceMonitor 인식하려면 필요
+    serviceMonitorSelectorNilUsesHelmValues: false
+
+# ── AlertManager ─────────────────────────────────────────────
+# 자원 절약 — 알람 기능 미사용
+alertmanager:
+  enabled: false
+
+# ── 경량 컴포넌트 — 유지 ──────────────────────────────────────
+kubeStateMetrics:
+  enabled: true  # k8s 리소스 메트릭 (Pod, Deployment 상태 등)
+
+nodeExporter:
+  enabled: true  # 노드 시스템 메트릭 (CPU, 메모리, 디스크)
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
