@@ -1,4 +1,4 @@
-#dev/variables.tf
+#prod/variables.tf
 
 variable "db_password" {
   type        = string
@@ -21,6 +21,7 @@ variable "s3_bucket_name" {
 variable "env" {
   type        = string
   description = "배포 환경 이름"
+  default     = "prod"
 }
 
 variable "admin_user_arns" {
@@ -35,11 +36,6 @@ variable "rds_delete_protect" {
   default     = true
 }
 
-variable "env" {
-  type        = string
-  description = "배포 환경 이름"
-}
-
 variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
@@ -52,8 +48,26 @@ variable "key_pair_name" {
   description = "Bastion SSH 접속용 키페어 이름"
 }
 
-variable "force_destroy" {
-  type        = bool
-  description = "S3 버킷 내부에 존재하는 모든 파일 삭제 활성화 여부 (true/false)"
+# [리팩토링] 미사용 변수였음. force_destroy 를 쓰는 리소스가 prod main 에 없음.
+# prod S3 는 dev 와 공유하며 버킷 자체를 생성하지 않으므로 이 변수는 불필요 → 제거
+# (만약 prod 전용 버킷 생성 예정이면 해당 aws_s3_bucket 리소스에 연결할 것)
+
+# [리팩토링] prod RDS 백업 보존 기간 변수 추가
+variable "rds_backup_retention_period" {
+  type        = number
+  description = "RDS 자동 백업 보존 기간(일). prod 는 7일 이상 권장"
+  default     = 7
 }
 
+# [리팩토링] bastion SSH 허용 CIDR (prod 는 반드시 좁혀서 사용)
+variable "allowed_ssh_cidr" {
+  type        = list(string)
+  description = "Bastion SSH 접속 허용 CIDR 목록 (prod 는 회사/VPN IP 로 제한)"
+  default     = ["0.0.0.0/0"]
+}
+
+variable "force_destroy" {
+  type        = bool
+  description = "S3 버킷 강제 삭제 여부. prod 는 false 권장"
+  default     = false
+}

@@ -1,4 +1,4 @@
-#iam.outputs.tf✅
+#iam/outputs.tf
 
 # GitHub Actions 관련 아웃풋
 

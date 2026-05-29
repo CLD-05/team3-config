@@ -7,10 +7,13 @@ module "vpc" {
   cluster_name = "team3-prod-eks"
 }
 
+# [import] dev 에서 소유권 이전받을 ECR. 실제 리소스가 MUTABLE 이므로 우선 MUTABLE.
+# import + plan 깨끗한 거 확인 후 IMMUTABLE 로 변경 예정
 module "ecr" {
   source = "../../modules/ecr"
 
-  repository_name = "team3/foldy"
+  repository_name      = "team3/foldy"
+  image_tag_mutability = "MUTABLE"
 }
 
 module "eks" {
@@ -24,6 +27,8 @@ module "eks" {
   node_min_size     = 2
   node_max_size     = 4
 
+  endpoint_public_access = true
+
   admin_user_arns = var.admin_user_arns
   github_actions_role_arns = {
     github_actions = module.iam.github_actions_role_arn
@@ -34,15 +39,18 @@ module "eks" {
 module "rds" {
   source = "../../modules/rds"
 
-  vpc_id                = module.vpc.vpc_id
-  rds_subnet_group_name = module.vpc.rds_subnet_group_name
-  eks_sg_id             = module.eks.node_security_group_id
-  db_password           = var.db_password
-  db_username           = var.db_username
-  env                   = "prod"
-  rds_delete_protect    = var.rds_delete_protect
-  multi_az              = var.rds_multi_az
-  bastion_sg_id         = module.bastion.bastion_sg_id
+  vpc_id                      = module.vpc.vpc_id
+  rds_subnet_group_name       = module.vpc.rds_subnet_group_name
+  eks_sg_id                   = module.eks.node_security_group_id
+  bastion_sg_id               = module.bastion.bastion_sg_id
+  db_password                 = var.db_password
+  db_username                 = var.db_username
+  env                         = "prod"
+  rds_delete_protect          = var.rds_delete_protect
+  multi_az                    = var.rds_multi_az
+  rds_backup_retention_period = var.rds_backup_retention_period
+  # [import] 기존 RDS 이름 유지 (변경 시 재부팅/엔드포인트 변경 위험)
+  db_identifier = "prod-foldy-db-server"
 }
 
 module "iam" {
@@ -56,7 +64,6 @@ module "iam" {
   s3_bucket_name           = var.s3_bucket_name
 }
 
-# 🔹 Bastion 모듈 추가 (EKS 인프라 및 RDS 내부 접근 제어용으로 유지)
 module "bastion" {
   source = "../../modules/bastion"
 
@@ -64,17 +71,27 @@ module "bastion" {
   vpc_id           = module.vpc.vpc_id
   public_subnet_id = module.vpc.public_subnet_ids[0]
   key_pair_name    = var.key_pair_name
+  allowed_ssh_cidr = var.allowed_ssh_cidr
 }
 
-# 🔹 S3 정적 저장소 아키텍처 연동 (Presigned URL 업로드용)
-#S3
+# ─────────────────────────────────────────────────────────────────
+# S3 (dev 에서 소유권 이전받음) — import 대상
+# import 단계에선 실제값에 맞춤. 보안 강화는 import 완료 후 별도로.
+# ─────────────────────────────────────────────────────────────────
 resource "aws_s3_bucket" "app_storage" {
   bucket        = var.s3_bucket_name
-  force_destroy = true
+  force_destroy = var.force_destroy
 
   tags = {
     Name = var.s3_bucket_name
-    Team = "team3"
+  }
+}
+
+# [import] 버저닝 — 방금 활성화했으므로 코드에도 반영
+resource "aws_s3_bucket_versioning" "app_storage" {
+  bucket = aws_s3_bucket.app_storage.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
@@ -93,6 +110,8 @@ resource "aws_s3_bucket_cors_configuration" "app_storage" {
 resource "aws_s3_bucket_public_access_block" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
 
+  # [import] 실제 dev 설정이 전부 false 였음. import 깨끗하게 하려고 실제값에 맞춤.
+  # 보안 강화(true)는 import 완료 후 별도 커밋으로.
   block_public_acls       = false
   block_public_policy     = false
   ignore_public_acls      = false
@@ -113,43 +132,3 @@ resource "aws_s3_bucket_policy" "app_storage" {
     }]
   })
 }
-
-
-# prod는 Multi-AZ를 활성화해 장애 시 자동 페일오버를 지원합니다.
-# hint: rds/variables.tf에 multi_az 변수를 추가하고
-#       aws_db_instance.mysql의 multi_az 속성에 연결하세요.
-# hint: prod는 deletion_protection = true로 변경하세요.
-# hint: instance_class를 db.t3.small 이상으로 올리는 것을 권장합니다.
-# multi_az            = true
-# deletion_protection = true
-
-# module "iam" {
-#   source = "../../modules/iam"
-
-#   env                      = "prod"
-#   ecr_repository_arn       = module.ecr.repository_arn
-#   eks_oidc_provider_arn    = module.eks.oidc_provider_arn
-#   k8s_namespace            = "app"
-#   k8s_service_account_name = "app-sa"
-#   s3_bucket_name           = var.s3_bucket_name
-# }
-
-
-# prod 코드가 동작하려면 아래 모듈 수정이 선행되어야 합니다.
-
-# rds/variables.tf
-#   hint: multi_az 변수 추가 (type = bool, default = false)
-#   hint: deletion_protection 변수 추가 (type = bool, default = false)
-
-# rds/main.tf
-#   hint: aws_db_instance.mysql에 multi_az = var.multi_az 연결
-#   hint: aws_db_instance.mysql에 deletion_protection = var.deletion_protection 연결
-
-# vpc/main.tf
-#   hint: prod는 NAT Gateway를 2a, 2c 각각 1개씩 총 2개 배치해야
-#         2c 프라이빗 서브넷의 아웃바운드가 2a NAT를 타지 않습니다.
-#   hint: aws_nat_gateway.nat_gw_c, aws_eip.nat_c 리소스를 추가하고
-#         private_c 서브넷용 라우트 테이블을 분리하세요.
-
-# vpc/variables.tf
-#   hint: env 변수의 default를 제거하고 envs/dev, envs/prod에서 명시적으로 넘기세요.

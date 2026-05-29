@@ -1,29 +1,31 @@
+#base/ingress.yaml
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: foldy-ingress
   namespace: app
+  labels:
+    app: foldy   # [리팩토링] 라벨 누락 → 추가
   annotations:
-
     # 외부 인터넷에서 접근 가능한 ALB
     alb.ingress.kubernetes.io/scheme: internet-facing
 
     # ALB가 Pod IP로 직접 트래픽 전달
     alb.ingress.kubernetes.io/target-type: ip
 
-    alb.ingress.kubernetes.io/tags: Team=team3,Environment=dev,ManagedBy=terraform
+    # [리팩토링] dev 고정값 제거 → overlay 에서 환경별로 patch.
+    # base 에 Environment=dev, load-balancer-name=team3-dev-alb 가 박혀 있으면
+    # prod overlay 에서 반드시 덮어써야 하고, 누락 시 prod 가 dev 이름표를 달게 됨
+    # alb.ingress.kubernetes.io/tags 와 load-balancer-name 은 overlay 로 이동
 
-    alb.ingress.kubernetes.io/load-balancer-name: team3-dev-alb
-
-    # health check 경로 추가
+    # health check 경로
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
     alb.ingress.kubernetes.io/success-codes: "200"
 spec:
-  # 사용할 Ingress Controller 지정
   ingressClassName: alb
-
   rules:
     - http:
         paths:
@@ -31,8 +33,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                # service.yaml의 metadata.name과 같아야 함
                 name: foldy
                 port:
-                  # service.yaml의 spec.ports.port와 같아야 함
                   number: 80

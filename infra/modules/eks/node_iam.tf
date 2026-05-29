@@ -1,4 +1,4 @@
-#eks/node_iam.tf✅
+#eks/node_iam.tf
 
 # EKS Node Group용 IAM Role
 resource "aws_iam_role" "eks_node" {
@@ -16,6 +16,11 @@ resource "aws_iam_role" "eks_node" {
       }
     ]
   })
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.cluster_name}-node-role"
+  }
 }
 
 # Worker Node 기본 권한

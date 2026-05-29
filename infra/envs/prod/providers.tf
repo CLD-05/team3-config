@@ -16,17 +16,18 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
     }
-
   }
 }
 
 provider "aws" {
   region = "ap-northeast-2"
 
+  # [리팩토링] dev 와 동일하게 Project 추가하여 분류 일관성 확보
   default_tags {
     tags = {
       Team        = "team3"
       Environment = "prod"
+      Project     = "foldy"
       ManagedBy   = "terraform"
     }
   }

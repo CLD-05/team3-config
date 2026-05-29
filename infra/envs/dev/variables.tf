@@ -23,23 +23,34 @@ variable "admin_user_arns" {
   type        = list(string)
   default     = []
 }
+
 variable "env" {
   type        = string
   description = "배포 환경 이름"
+  default     = "dev"
 }
 
 variable "rds_delete_protect" {
   type        = bool
   description = "RDS 삭제 보호 활성화 여부 (true/false)"
+  default     = false
 }
 
 variable "rds_multi_az" {
   type        = bool
   description = "RDS 멀티 AZ 활성화 여부"
+  default     = false
 }
 
 #bastion
 variable "key_pair_name" {
   type        = string
   description = "Bastion SSH 접속용 키페어 이름"
+}
+
+# [리팩토링] bastion SSH 허용 CIDR (모듈 allowed_ssh_cidr 연결)
+variable "allowed_ssh_cidr" {
+  type        = list(string)
+  description = "Bastion SSH 접속 허용 CIDR 목록 (운영 시 회사/VPN IP 로 제한)"
+  default     = ["0.0.0.0/0"]
 }

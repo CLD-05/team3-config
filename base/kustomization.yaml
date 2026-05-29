@@ -1,5 +1,24 @@
+#base/kustomization.yaml
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+
+# [리팩토링] 공통 라벨 일원화.
+# 이걸 쓰면 각 리소스 metadata.labels 에 app: foldy 를 수동으로 안 달아도 됨.
+# (구버전 키는 commonLabels 였으나 deprecated → labels 사용)
+# includeSelectors: false 로 두는 이유:
+#   true 면 Deployment/Service 의 selector.matchLabels 에도 라벨이 주입되는데,
+#   selector 는 한 번 배포되면 immutable 이라 나중에 공통라벨을 바꾸면 배포가 깨짐.
+#   selector 는 기존 app: foldy 를 그대로 두고, 메타데이터 라벨만 공통 적용.
+labels:
+  - pairs:
+      app: foldy
+      managed-by: kustomize
+    includeSelectors: false
+
+# [리팩토링] 모든 리소스를 app 네임스페이스로 강제.
+# service.yaml 등에서 namespace 누락 시에도 안전하게 app 으로 배치됨.
+namespace: app
 
 resources:
   - configmap.yaml

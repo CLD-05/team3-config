@@ -1,7 +1,10 @@
+#base/service.yaml
+
 apiVersion: v1
 kind: Service
 metadata:
   name: foldy
+  namespace: app   # [리팩토링] namespace 누락 → 추가 (다른 리소스는 app 인데 이것만 빠져 default 로 갈 수 있음)
   labels:
     app: foldy
 spec:

@@ -1,6 +1,9 @@
+#overlays/prod/kustomization.yaml
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# [리팩토링] base 와 동일하게 app 네임스페이스 강제
 namespace: app
 
 resources:
@@ -8,8 +11,33 @@ resources:
 
 patches:
   - path: patch-replicas.yaml
+  # [리팩토링] base 에서 뺀 환경값들을 prod 용으로 채워야 함.
+  # 안 채우면 base 의 placeholder(또는 dev 잔재)가 그대로 떠서 prod 가 깨짐
+  - path: patch-serviceaccount.yaml   # prod IRSA Role ARN
+  - path: patch-ingress.yaml          # prod ALB 이름/태그
+
+# [리팩토링] base 에서 뺀 APP_ENV / LOG_LEVEL 을 prod 값으로 주입
+configMapGenerator:
+  - name: foldy-app-config
+    behavior: merge
+    literals:
+      - APP_ENV=prod
+      - LOG_LEVEL=INFO
 
 images:
   - name: foldy-app
     newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
     newTag: sha-a6d6dc2
+
+secretGenerator:
+  - name: team3-app-secret
+    behavior: replace
+    type: Opaque
+    literals:
+      - DB_URL=$PROD_DB_URL
+      - DB_USERNAME=$PROD_DB_USERNAME
+      - DB_PASSWORD=$PROD_DB_PASSWORD
+      # [리팩토링] 키 이름 불일치 버그: base 와 app 은 JWT_SECRET_KEY 를 참조하는데
+      # 여기선 JWT_SECRET 으로 생성 → 앱이 JWT 키를 못 찾음. JWT_SECRET_KEY 로 수정.
+      # 또한 값 변수도 PROD_DB_JWT_SECRET → PROD_JWT_SECRET 로 정리(DB 와 무관)
+      - JWT_SECRET_KEY=$PROD_JWT_SECRET

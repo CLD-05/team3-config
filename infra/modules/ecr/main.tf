@@ -5,7 +5,8 @@ resource "aws_ecr_repository" "this" {
   name = var.repository_name
   ### MUTABLE은 같은 태그로 이미지 덮어쓰기가 가능해 롤백 추적이 어려워집니다.
   ### prod 환경 전환 시 IMMUTABLE로 변경하세요.
-  image_tag_mutability = "MUTABLE"
+  # [리팩토링] 환경별로 제어 가능하도록 변수화 (prod 자동 IMMUTABLE)
+  image_tag_mutability = var.image_tag_mutability
 
   # 이미지 있어도 terraform destroy 시 강제 삭제
   force_delete = true
@@ -17,26 +18,13 @@ resource "aws_ecr_repository" "this" {
     ### 보안 요구사항이 높아지면 KMS로 전환하세요.
     encryption_type = "AES256"
   }
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = "team3-${var.repository_name}"
-    Team = "team3"
   }
 }
 
-# IAM용 Repository 생성
-# resource "aws_ecr_repository" "iam" {
-#   name = "team3-${var.repository_name}-iam"
-#   ### prod 환경 전환 시 IMMUTABLE로 변경하세요.
-#   image_tag_mutability = "MUTABLE"
-
-#   image_scanning_configuration {
-#     scan_on_push = true
-#   }
-#   encryption_configuration {
-#     ### 보안 요구사항이 높아지면 KMS로 전환하세요.
-#     encryption_type = "AES256"
-#   }
-# }
+# [리팩토링] 주석 처리된 IAM repository 죽은 코드 삭제
 
 # ECR Lifecycle Policy 설정
 resource "aws_ecr_lifecycle_policy" "this" {
@@ -68,3 +56,4 @@ resource "aws_ecr_lifecycle_policy" "this" {
     ]
   })
 }
+# [참고] aws_ecr_lifecycle_policy 는 태그 미지원 리소스. 태그 누락 아님

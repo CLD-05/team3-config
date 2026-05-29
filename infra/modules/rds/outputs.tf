@@ -5,8 +5,6 @@ output "endpoint" {
   value       = aws_db_instance.mysql.endpoint
 }
 
-### K8s Secret에 주입할 때 db_name, username도 함께 필요합니다.
-### 아래 두 output을 추가하세요.
 output "db_name" {
   description = "RDS 데이터베이스 이름"
   value       = aws_db_instance.mysql.db_name

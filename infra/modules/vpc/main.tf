@@ -6,9 +6,9 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = "team3-${var.env}-vpc"
-    Team = "team3"
   }
 }
 
@@ -18,11 +18,11 @@ resource "aws_internet_gateway" "igw" {
 
   tags = {
     Name = "team3-${var.env}-igw"
-    Team = "team3"
   }
 }
 
 # 퍼블릭 서브넷
+# [리팩토링] kubernetes.io 태그는 default_tags 와 무관한 기능성 태그라 유지
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -32,7 +32,6 @@ resource "aws_subnet" "public_a" {
   tags = {
     Name                     = "team3-${var.env}-subnet-public-a"
     "kubernetes.io/role/elb" = "1"
-    Team                     = "team3"
   }
 }
 
@@ -45,7 +44,6 @@ resource "aws_subnet" "public_c" {
   tags = {
     Name                     = "team3-${var.env}-subnet-public-c"
     "kubernetes.io/role/elb" = "1"
-    Team                     = "team3"
   }
 }
 
@@ -59,7 +57,6 @@ resource "aws_subnet" "private_a" {
     Name                                        = "team3-${var.env}-subnet-private-a"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    Team                                        = "team3"
   }
 }
 
@@ -72,7 +69,6 @@ resource "aws_subnet" "private_c" {
     Name                                        = "team3-${var.env}-subnet-private-c"
     "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    Team                                        = "team3"
   }
 }
 
@@ -84,7 +80,6 @@ resource "aws_subnet" "db_a" {
 
   tags = {
     Name = "team3-${var.env}-subnet-db-a"
-    Team = "team3"
   }
 }
 
@@ -95,7 +90,6 @@ resource "aws_subnet" "db_c" {
 
   tags = {
     Name = "team3-${var.env}-subnet-db-c"
-    Team = "team3"
   }
 }
 
@@ -104,7 +98,10 @@ resource "aws_subnet" "db_c" {
 # ─────────────────────────────────────────────────────────────────
 resource "aws_eip" "nat_a" {
   domain = "vpc"
-  tags   = { Name = "team3-${var.env}-nat-a-eip", Team = "team3" }
+  # [리팩토링] Team 태그 제거 → default_tags 이관, Name 만 유지
+  tags = {
+    Name = "team3-${var.env}-nat-a-eip"
+  }
 }
 
 resource "aws_nat_gateway" "nat_gw_a" {
@@ -113,7 +110,6 @@ resource "aws_nat_gateway" "nat_gw_a" {
 
   tags = {
     Name = "team3-${var.env}-nat-gw-a"
-    Team = "team3"
   }
   depends_on = [aws_internet_gateway.igw]
 }
@@ -124,7 +120,9 @@ resource "aws_nat_gateway" "nat_gw_a" {
 resource "aws_eip" "nat_c" {
   count  = var.env == "prod" ? 1 : 0
   domain = "vpc"
-  tags   = { Name = "team3-${var.env}-nat-c-eip", Team = "team3" }
+  tags = {
+    Name = "team3-${var.env}-nat-c-eip"
+  }
 }
 
 resource "aws_nat_gateway" "nat_gw_c" {
@@ -134,7 +132,6 @@ resource "aws_nat_gateway" "nat_gw_c" {
 
   tags = {
     Name = "team3-${var.env}-nat-gw-c"
-    Team = "team3"
   }
   depends_on = [aws_internet_gateway.igw]
 }
@@ -152,7 +149,9 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.igw.id
   }
 
-  tags = { Name = "team3-${var.env}-rt-public", Team = "team3" }
+  tags = {
+    Name = "team3-${var.env}-rt-public"
+  }
 }
 
 # 프라이빗 라우트 테이블 A (2a 영역 서버들이 사용)
@@ -164,7 +163,9 @@ resource "aws_route_table" "private_a" {
     nat_gateway_id = aws_nat_gateway.nat_gw_a.id
   }
 
-  tags = { Name = "team3-${var.env}-rt-private-a", Team = "team3" }
+  tags = {
+    Name = "team3-${var.env}-rt-private-a"
+  }
 }
 
 # 프라이빗 라우트 테이블 C (2c 영역 서버들이 사용 — prod일 때는 nat_gw_c 사용, dev일 때는 nat_gw_a로 대체)
@@ -176,7 +177,9 @@ resource "aws_route_table" "private_c" {
     nat_gateway_id = var.env == "prod" ? aws_nat_gateway.nat_gw_c[0].id : aws_nat_gateway.nat_gw_a.id
   }
 
-  tags = { Name = "team3-${var.env}-rt-private-c", Team = "team3" }
+  tags = {
+    Name = "team3-${var.env}-rt-private-c"
+  }
 }
 
 # ─────────────────────────────────────────────────────────────────
@@ -215,6 +218,7 @@ resource "aws_route_table_association" "db_c" {
   subnet_id      = aws_subnet.db_c.id
   route_table_id = aws_route_table.private_c.id
 }
+# [참고] aws_route_table_association 은 태그 미지원 리소스. 누락 아님
 
 # RDS 서브넷 그룹
 resource "aws_db_subnet_group" "rds_group" {
@@ -223,7 +227,6 @@ resource "aws_db_subnet_group" "rds_group" {
 
   tags = {
     Name = "team3-${var.env}-rds-subnet-group"
-    Team = "team3"
   }
 }
 
@@ -233,6 +236,5 @@ resource "aws_default_route_table" "default" {
 
   tags = {
     Name = "team3-${var.env}-rt-default"
-    Team = "team3"
   }
 }

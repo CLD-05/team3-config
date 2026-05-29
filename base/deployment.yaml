@@ -1,8 +1,12 @@
+#base/deployment.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: foldy
   namespace: app
+  labels:
+    app: foldy   # [리팩토링] 메타 라벨 누락 → 추가 (조회/셀렉터 일관성)
 spec:
   replicas: 1
   selector:
@@ -40,7 +44,6 @@ spec:
             periodSeconds: 5
             failureThreshold: 3
             timeoutSeconds: 10
-
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

@@ -22,10 +22,13 @@ terraform {
 provider "aws" {
   region = "ap-northeast-2"
 
+  # [리팩토링] 모듈들에서 제거한 공통 태그를 여기로 집약.
+  # Project 추가하여 비용/리소스 분류 일관성 확보
   default_tags {
     tags = {
       Team        = "team3"
       Environment = "dev"
+      Project     = "foldy"
       ManagedBy   = "terraform"
     }
   }

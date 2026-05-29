@@ -1,0 +1,11 @@
+#overlays/prod/patch-ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: foldy-ingress
+  namespace: app
+  annotations:
+    # [리팩토링] prod ALB 이름/태그. base 에 dev 값이 있었으므로 prod 에서 반드시 덮어씀
+    alb.ingress.kubernetes.io/load-balancer-name: team3-prod-alb
+    alb.ingress.kubernetes.io/tags: Team=team3,Environment=prod,ManagedBy=terraform

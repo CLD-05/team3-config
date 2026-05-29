@@ -15,6 +15,7 @@ output "eks_cluster_endpoint" {
   value       = module.eks.cluster_endpoint
 }
 
+# [리팩토링] 위에서 ecr 모듈을 추가했으므로 주석 해제
 output "ecr_repository_url" {
   description = "ECR 리포지토리 URL (CI에서 이미지 push 시 사용)"
   value       = module.ecr.repository_url

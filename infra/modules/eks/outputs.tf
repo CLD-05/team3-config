@@ -1,3 +1,5 @@
+#eks/outputs.tf
+
 output "cluster_name" {
   description = "생성된 EKS 클러스터 이름"
   value       = aws_eks_cluster.this.name

@@ -1,4 +1,4 @@
-#eks/node_group.tf✅
+#eks/node_group.tf
 
 # EKS Worker Node Group 생성
 resource "aws_eks_node_group" "this" {
@@ -15,10 +15,9 @@ resource "aws_eks_node_group" "this" {
     max_size     = var.node_max_size
   }
 
-  # 노드 EC2에 이름 태그 추가
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = "team3-${var.cluster_name}-node"
-    Team = "team3"
   }
 
   depends_on = [

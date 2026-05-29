@@ -1,3 +1,5 @@
+#eks/variables.tf
+
 variable "cluster_name" {
   description = "EKS 클러스터 이름 (예: team3-dev-eks, team3-prod-eks)"
   type        = string
@@ -6,7 +8,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "EKS 컨트롤 플레인 Kubernetes 버전"
   type        = string
-  default     = "1.30"
+  default     = "1.35"
 }
 
 variable "private_subnet_ids" {
@@ -48,6 +50,13 @@ variable "github_actions_role_arns" {
   description = "GitHub Actions IAM Role ARN 맵 (key: 식별자, value: Role ARN). 빈 맵이면 access entry 생성 안 함"
   type        = map(string)
   default     = {}
+}
+
+# [리팩토링] EKS API public access 변수화 (운영 전환 시 false)
+variable "endpoint_public_access" {
+  description = "EKS API 서버 퍼블릭 접근 허용 여부. 운영 전환 시 false 권장"
+  type        = bool
+  default     = true
 }
 
 #bastion

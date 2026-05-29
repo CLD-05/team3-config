@@ -1,15 +1,16 @@
-# Bastion Security Group
+#bastion/main.tf
 resource "aws_security_group" "bastion_sg" {
   name        = "team3-${var.env}-foldy-bastion-sg"
   description = "Security Group for Bastion Host"
   vpc_id      = var.vpc_id
 
   ingress {
-    description = "SSH from anywhere"
+    description = "SSH from allowed CIDR"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    # [리팩토링] 0.0.0.0/0 하드코딩 제거 → var.allowed_ssh_cidr 로 분리
+    cidr_blocks = var.allowed_ssh_cidr
   }
 
   egress {
@@ -19,9 +20,9 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = "team3-${var.env}-foldy-bastion-sg"
-    Team = "team3"
   }
 }
 
@@ -34,8 +35,8 @@ resource "aws_instance" "bastion" {
   key_name                    = var.key_pair_name
   associate_public_ip_address = true
 
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = "team3-${var.env}-foldy-bastion"
-    Team = "team3"
   }
 }

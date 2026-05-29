@@ -1,4 +1,4 @@
-#vpc/outputs.tf✅
+#vpc/outputs.tf
 
 output "vpc_id" {
   description = "The ID of the VPC"

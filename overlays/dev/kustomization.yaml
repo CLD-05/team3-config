@@ -1,13 +1,36 @@
+#overlays/dev/kustomization.yaml  (※ dev 폐기 예정 — 참고용 정리)
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-- ../../base
+namespace: app
 
+resources:
+  - ../../base
+
+# [리팩토링] base 가 placeholder 만 갖게 되면 overlay 가 환경값을 채워야 함
 patches:
-- path: patch-replicas.yaml
+  - path: patch-replicas.yaml
+  - path: patch-serviceaccount.yaml   # IRSA Role ARN (dev)
+  - path: patch-ingress.yaml          # ALB 이름/태그 (dev)
+
+# [리팩토링] base 에서 뺀 환경별 ConfigMap 값 주입
+configMapGenerator:
+  - name: foldy-app-config
+    behavior: merge
+    literals:
+      - APP_ENV=dev
+      - LOG_LEVEL=DEBUG
+
+# [리팩토링] Secret 실제값은 코드에 두지 말고 CI(GitHub Secrets)에서 주입
+# secretGenerator + env file 방식 권장 (파일은 .gitignore)
+secretGenerator:
+  - name: team3-app-secret
+    behavior: replace
+    envs:
+      - app-secret.env   # CI 단계에서 생성, git 커밋 금지
 
 images:
-- name: foldy-app
-  newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
-  newTag: sha-a6d6dc2
+  - name: foldy-app
+    newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
+    newTag: sha-a6d6dc2

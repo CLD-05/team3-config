@@ -1,3 +1,5 @@
+#overlays/dev/patch-replicas.yaml  (변경 없음 — dev 는 1개 적정)
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:

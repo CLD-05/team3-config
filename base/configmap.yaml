@@ -1,3 +1,5 @@
+#base/configmap.yaml
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +8,9 @@ metadata:
   labels:
     app: foldy
 data:
-  APP_ENV: "dev"
-  LOG_LEVEL: "DEBUG"
+  # [리팩토링] APP_ENV 는 환경별로 달라야 하므로 base 에서 빼고 overlay 에서 주입
+  # (base 에 dev 고정값이 있으면 prod overlay 에서 덮어쓰는 걸 잊기 쉬움)
+  LOG_LEVEL: "INFO"   # [리팩토링] base 기본은 INFO, dev overlay 에서 DEBUG 로 덮어쓰기
 
   # AWS
   AWS_REGION: "ap-northeast-2"

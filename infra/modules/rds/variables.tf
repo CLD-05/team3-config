@@ -21,15 +21,12 @@ variable "db_password" {
   sensitive   = true
 }
 
-### main.tf에서 username이 "foldy"로 하드코딩되어 있습니다.
-### 아래 변수를 추가하고 tfvars에서 관리하세요.
 variable "db_username" {
   type        = string
   description = "MySQL 마스터 계정 이름"
   default     = "foldy"
 }
 
-### iam/main.tf, rds/main.tf 환경 분리를 위해 아래 변수를 추가하세요.
 variable "env" {
   type        = string
   description = "배포 환경 (예: dev, prod)"
@@ -57,5 +54,12 @@ variable "rds_backup_retention_period" {
 variable "bastion_sg_id" {
   type        = string
   description = "Bastion 보안그룹 ID"
+  default     = ""
+}
+
+# [import] 기존 RDS identifier 유지용. 마이그레이션 직후 이름 변경(재부팅/엔드포인트 변경) 방지
+variable "db_identifier" {
+  type        = string
+  description = "RDS 인스턴스 식별자. 기존 리소스와 일치시켜 불필요한 변경 방지"
   default     = ""
 }

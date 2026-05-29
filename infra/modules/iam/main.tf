@@ -37,16 +37,16 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 }
 
 resource "aws_iam_role" "github_actions_ecr_role" {
-  ### Role 이름이 "dev-foldy-github-actions-ecr-role"로 하드코딩되어 있습니다.
-  ### var.env를 활용해 "${var.env}-foldy-github-actions-ecr-role"로 변경하면(변경완료)
-  ### prod 환경 분리 시 그대로 재사용할 수 있습니다.
   name               = "team3-${var.env}-foldy-github-actions-ecr-role"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-foldy-github-actions-ecr-role"
+  }
 }
 
 resource "aws_iam_policy" "ecr_push_policy" {
-  ### Policy 이름도 동일하게 하드코딩되어 있습니다.
-  ### "${var.env}-foldy-ecr-push-policy"로 변경하세요.(변경 완료)
   name        = "team3-${var.env}-foldy-ecr-push-policy"
   description = "Allow GitHub Actions to push images to AWS ECR"
 
@@ -75,23 +75,28 @@ resource "aws_iam_policy" "ecr_push_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
         ]
-        ### ecr_repository_url에서 split으로 레포 이름을 추출하는 방식은
-        ### URL 형식이 바뀌면 조용히 깨질 수 있습니다.
-        ### ecr 모듈 outputs.tf에 repository_arn을 추가하고
-        ### 해당 ARN을 직접 받아 사용하는 방식으로 변경하세요.(변경 완료)
         Resource = [var.ecr_repository_arn]
       }
     ]
   })
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-foldy-ecr-push-policy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
   role       = aws_iam_role.github_actions_ecr_role.name
   policy_arn = aws_iam_policy.ecr_push_policy.arn
 }
+# [참고] aws_iam_role_policy_attachment 는 태그 미지원 리소스. 누락 아님
 
+# [리팩토링] 정규식 슬래시 이스케이프 오류 수정
+# 기존: "/^(.*)oidc-provider//" → 슬래시가 잘못되어 치환이 동작하지 않음
+# arn:aws:iam::<acct>:oidc-provider/<url> 에서 oidc-provider/ 까지를 제거하도록 수정
 locals {
-  oidc_provider_url = replace(var.eks_oidc_provider_arn, "/^(.*)oidc-provider//", "")
+  oidc_provider_url = replace(var.eks_oidc_provider_arn, "/^arn:aws:iam::[0-9]+:oidc-provider\\//", "")
 }
 
 resource "aws_iam_role" "app_irsa_role" {
@@ -113,6 +118,11 @@ resource "aws_iam_role" "app_irsa_role" {
       }
     }]
   })
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-app-irsa-role"
+  }
 }
 
 resource "aws_iam_policy" "app_s3_policy" {
@@ -137,6 +147,11 @@ resource "aws_iam_policy" "app_s3_policy" {
       }
     ]
   })
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-app-s3-policy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "app_irsa_attach" {
@@ -164,11 +179,21 @@ resource "aws_iam_role" "alb_controller_irsa_role" {
       }
     }]
   })
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-alb-controller-irsa-role"
+  }
 }
 
 resource "aws_iam_policy" "alb_controller_policy" {
   name   = "team3-${var.env}-alb-controller-policy"
   policy = file("${path.module}/alb_controller_policy.json")
+
+  # [리팩토링] 태그 지원 리소스인데 태그 누락 → Name 추가 (Team은 default_tags)
+  tags = {
+    Name = "team3-${var.env}-alb-controller-policy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "alb_controller_attach" {

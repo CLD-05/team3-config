@@ -10,8 +10,4 @@ output "repository_arn" {
   value       = aws_ecr_repository.this.arn
 }
 
-# output "repository_iam_arn" {
-#   description = "IAM_ECR repository ARN"
-#   value       = aws_ecr_repository.iam.arn
-
-# }
+# [리팩토링] 주석 처리된 IAM repository output 삭제

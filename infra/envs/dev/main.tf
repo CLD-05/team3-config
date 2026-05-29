@@ -11,6 +11,8 @@ module "ecr" {
   source = "../../modules/ecr"
 
   repository_name = "team3/foldy"
+  # [리팩토링] dev 는 MUTABLE 유지(명시), prod 루트에서는 IMMUTABLE 로 넘길 것
+  image_tag_mutability = "MUTABLE"
 }
 
 module "eks" {
@@ -43,7 +45,6 @@ module "rds" {
   multi_az              = var.rds_multi_az
 }
 
-## iam/variables.tf 를 해결한 후 이곳의 주석을 해제
 module "iam" {
   source = "../../modules/iam"
 
@@ -63,6 +64,8 @@ module "bastion" {
   vpc_id           = module.vpc.vpc_id
   public_subnet_id = module.vpc.public_subnet_ids[0]
   key_pair_name    = var.key_pair_name
+  # [리팩토링] bastion 모듈에 추가한 allowed_ssh_cidr 연결 (운영 시 회사/VPN IP 로 좁힐 것)
+  allowed_ssh_cidr = var.allowed_ssh_cidr
 }
 
 #S3
@@ -70,9 +73,9 @@ resource "aws_s3_bucket" "app_storage" {
   bucket        = var.s3_bucket_name
   force_destroy = true
 
+  # [리팩토링] Team 태그 제거 → provider default_tags 로 이동, Name 만 유지
   tags = {
     Name = var.s3_bucket_name
-    Team = "team3"
   }
 }
 
@@ -87,15 +90,19 @@ resource "aws_s3_bucket_cors_configuration" "app_storage" {
     max_age_seconds = 3000
   }
 }
+# [참고] aws_s3_bucket_cors_configuration 은 태그 미지원 리소스. 누락 아님
 
 resource "aws_s3_bucket_public_access_block" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
 
-  block_public_acls       = false
+  # [리팩토링][보안] 버킷 정책에서 GetObject 만 public 으로 여는 것이 목적이므로
+  # ACL 관련 차단은 켜두는 것이 안전. 정책 기반 공개는 아래 bucket_policy 로 충분
+  block_public_acls       = true
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
+# [참고] aws_s3_bucket_public_access_block 은 태그 미지원 리소스. 누락 아님
 
 resource "aws_s3_bucket_policy" "app_storage" {
   bucket     = aws_s3_bucket.app_storage.id
@@ -111,3 +118,4 @@ resource "aws_s3_bucket_policy" "app_storage" {
     }]
   })
 }
+# [참고] aws_s3_bucket_policy 는 태그 미지원 리소스. 누락 아님
