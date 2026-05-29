@@ -1,28 +1,19 @@
-
-# ─────────────────────────────────────────────────────────────
-# ServiceMonitor (foldy 앱 메트릭 수집) — 작성 담당: (팀원 이름)
-#
-# 목적: Prometheus 가 foldy 앱의 /actuator/prometheus 를 긁어가게 함
-#       → Grafana 에서 JVM/HTTP 요청 메트릭 대시보드 가능
-#
-# ⚠️ 전제: 앱(team3-app)에 micrometer-registry-prometheus 의존성 추가 +
-#    application.yml 에 management.endpoints.web.exposure.include 에 prometheus 추가 필요.
-#    (앱 담당과 협의)
-#
-# 작성할 항목(힌트):
-#   - kind: ServiceMonitor (apiVersion: monitoring.coreos.com/v1)
-#   - namespace: monitoring (또는 app — Prometheus selector 와 맞춰야 함)
-#   - selector.matchLabels: foldy service 의 라벨 (app: foldy)
-#   - endpoints:
-#       - port: http  (service 의 포트 이름)
-#         path: /actuator/prometheus
-#         interval: 30s
-#   - namespaceSelector: app  (foldy svc 가 app 네임스페이스에 있으므로)
-#
-# ⚠️ Prometheus 가 이 ServiceMonitor 를 인식하려면 values.yaml 의
-#    prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues: false 설정 확인.
-#
-# 참고: https://prometheus-operator.dev/docs/operator/design/#servicemonitor
-# ─────────────────────────────────────────────────────────────
-
-# 여기에 ServiceMonitor 작성
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: foldy
+  namespace: monitoring # Prometheus와 같은 네임스페이스
+  labels:
+    release: monitoring # 설치한 Helm Release 이름
+spec:
+  namespaceSelector:
+    matchNames:
+      - app
+  selector:
+    matchLabels:
+      app: foldy # base/service.yaml의 라벨과 일치
+  endpoints:
+    - port: http # Service에서 정의한 포트 name
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
