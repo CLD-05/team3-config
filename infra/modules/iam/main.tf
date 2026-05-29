@@ -200,3 +200,32 @@ resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
   role       = aws_iam_role.alb_controller_irsa_role.name
   policy_arn = aws_iam_policy.alb_controller_policy.arn
 }
+
+# [추가] App IRSA 가 Secrets Manager 읽도록 정책 추가
+resource "aws_iam_policy" "app_secrets_policy" {
+  name        = "team3-${var.env}-app-secrets-policy"
+  description = "Allow app pod to read secrets from Secrets Manager via IRSA"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = "arn:aws:secretsmanager:ap-northeast-2:495599735720:secret:team3/${var.env}/*"
+      }
+    ]
+  })
+
+  tags = {
+    Name = "team3-${var.env}-app-secrets-policy"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "app_secrets_attach" {
+  role       = aws_iam_role.app_irsa_role.name
+  policy_arn = aws_iam_policy.app_secrets_policy.arn
+}
