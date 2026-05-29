@@ -1,6 +1,7 @@
 # argocd/application.yaml
 ### foldy-prod
 # dev 는 폐기됨. prod 단일 운영.
+# 가이드 권장: 학습 단계는 manual sync (automated/selfHeal 비활성화)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -16,14 +17,10 @@ spec:
     server: https://kubernetes.default.svc
     namespace: app
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
   # 실제 시크릿은 클러스터에 직접 주입(kubectl), git 엔 placeholder.
-  # ArgoCD 가 secret data 를 덮어쓰지 않도록 무시.
   ignoreDifferences:
     - group: ""
       kind: Secret
