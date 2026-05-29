@@ -4,15 +4,15 @@ kind: Kustomization
 namespace: app
 
 resources:
-  - ../../base
+- ../../base
 
 patches:
-  - path: patch-replicas.yaml
-  - path: patch-serviceaccount.yaml
-  - path: patch-ingress.yaml
-  - path: patch-configmap.yaml
+- path: patch-replicas.yaml
+- path: patch-serviceaccount.yaml
+- path: patch-ingress.yaml
+- path: patch-configmap.yaml
 
 images:
-  - name: foldy-app
-    newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
-    newTag: sha-a6d6dc2
+- name: foldy-app
+  newName: 495599735720.dkr.ecr.ap-northeast-2.amazonaws.com/team3/foldy
+  newTag: sha-6d460b2
