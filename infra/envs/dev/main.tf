@@ -119,3 +119,16 @@ resource "aws_s3_bucket_policy" "app_storage" {
   })
 }
 # [참고] aws_s3_bucket_policy 는 태그 미지원 리소스. 누락 아님
+
+module "external_secret" {
+  source = "../../modules/external_secret"
+
+  external_secret_name   = "team3-dev-db-external-secret"
+  namespace              = "team3"
+  secret_store_name      = "aws-secretsmanager-store" # 김시현 님이 만든 SecretStore 이름
+  target_k8s_secret_name = "dev-db-secret"            # K8s 내부에 최종 생성될 Secret 이름
+
+  k8s_secret_key         = "password"
+  aws_secretsmanager_key = "dev/team3/db" # 개발 환경용 AWS Secret Name
+  aws_secret_property    = "password"
+}

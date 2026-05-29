@@ -132,3 +132,16 @@ resource "aws_s3_bucket_policy" "app_storage" {
     }]
   })
 }
+
+module "external_secret" {
+  source = "../../modules/external_secret"
+
+  external_secret_name   = "team3-prod-alb-secret" # 운영 환경에 맞춘 이름
+  namespace              = "team3"
+  secret_store_name      = "aws-secretsmanager-store"
+  target_k8s_secret_name = "prod-db-secret" # 운영 환경 K8s Secret 이름
+
+  k8s_secret_key         = "password"
+  aws_secretsmanager_key = "prod/team3/db" # 운영 환경용 AWS Secret Name
+  aws_secret_property    = "password"
+}
