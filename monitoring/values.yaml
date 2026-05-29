@@ -1,0 +1,36 @@
+
+# ─────────────────────────────────────────────────────────────
+# kube-prometheus-stack Helm values
+
+# 설치: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#       helm install monitoring prometheus-community/kube-prometheus-stack \
+#         -n monitoring --create-namespace -f values.yaml
+#
+# ⚠️ 노드 2개(t3.medium)뿐이라 자원 빠듯함. 가볍게 잡을 것.
+#
+# 작성할 항목(힌트):
+#
+# grafana:
+#   adminPassword: (Grafana admin 비번 — 평문 말고 추후 secret 권장)
+#   ingress: (Grafana 외부 노출 — 별도 grafana-ingress.yaml 로 빼도 됨)
+#   resources: (requests/limits — 작게)
+#   # 기본 대시보드 자동 설치됨 (kube, node 등)
+#
+# prometheus:
+#   prometheusSpec:
+#     retention: (메트릭 보존 기간 — 예: 7d, 학습용이라 짧게)
+#     resources: (requests/limits — 작게)
+#     storageSpec: (PVC — EBS. 안 쓰면 emptyDir 로 임시. 재시작 시 메트릭 날아감 주의)
+#     # serviceMonitorSelectorNilUsesHelmValues: false  ← 외부 ServiceMonitor 인식하려면 필요할 수 있음
+#
+# alertmanager:
+#   enabled: (알람 안 쓰면 false 로 꺼서 자원 절약)
+#
+# 자원 부족하면 끌 것 후보:
+#   - kubeStateMetrics, nodeExporter 는 가벼우니 유지
+#   - alertmanager, grafana persistence 는 선택
+#
+# 참고: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+# ─────────────────────────────────────────────────────────────
+
+# 여기에 values 작성
