@@ -1,0 +1,21 @@
+# 1. 전역 설정 영역 (교차 검증 방어)
+global:
+  clusterId: "team3-k8s-cluster"
+  cluster_id: "team3-k8s-cluster"
+  prometheus:
+    enabled: false
+    fqdn: http://prometheus-operated.monitoring.svc.cluster.local:9090
+
+# 2. 2.9 에이전트 전용 영역
+finopsagent:
+  clusterId: "team3-k8s-cluster"
+  cluster_id: "team3-k8s-cluster"
+
+# 3. 제품 환경 설정 영역
+kubecostProductConfigs:
+  clusterId: "team3-k8s-cluster"
+  cluster_id: "team3-k8s-cluster"
+
+# 자체 그라파나 비활성화 (자원 다이어트)
+grafana:
+  enabled: false

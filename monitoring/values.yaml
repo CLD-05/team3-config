@@ -47,8 +47,13 @@ prometheus:
         cpu: 500m
         memory: 1Gi
     storageSpec:
-      emptyDir:
-        medium: ""
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 20Gi
     serviceMonitorSelectorNilUsesHelmValues: false
 # ── AlertManager ─────────────────────────────────────────────
 alertmanager:
